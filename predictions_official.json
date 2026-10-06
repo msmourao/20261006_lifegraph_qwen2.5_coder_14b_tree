@@ -1,0 +1,1502 @@
+[
+  {
+    "instance_id": "astropy__astropy-12907",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "astropy__astropy-14182",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "astropy__astropy-14365",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "astropy__astropy-14995",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "astropy__astropy-6938",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "astropy__astropy-7746",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-10914",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/conf/global_settings.py b/django/conf/global_settings.py\nindex acee9887d2..04d1f9e1ea 100644\n--- a/django/conf/global_settings.py\n+++ b/django/conf/global_settings.py\n@@ -287,6 +287,7 @@ FILE_UPLOAD_HANDLERS = [\n \n # Maximum size, in bytes, of a request before it will be streamed to the\n # file system instead of into memory.\n+FILE_UPLOAD_PERMISSIONS = 0o644\n FILE_UPLOAD_MAX_MEMORY_SIZE = 2621440  # i.e. 2.5 MB\n \n # Maximum size in bytes of request data (excluding file uploads) that will be\n"
+  },
+  {
+    "instance_id": "django__django-10924",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py\nindex 0c64748ccd..7de0dc9271 100644\n--- a/django/db/models/fields/__init__.py\n+++ b/django/db/models/fields/__init__.py\n@@ -1663,6 +1663,8 @@ class FilePathField(Field):\n \n     def __init__(self, verbose_name=None, name=None, path='', match=None,\n                  recursive=False, allow_files=True, allow_folders=False, **kwargs):\n+        if callable(path):\n+            path = path()\n         self.path, self.match, self.recursive = path, match, recursive\n         self.allow_files, self.allow_folders = allow_files, allow_folders\n         kwargs.setdefault('max_length', 100)\n"
+  },
+  {
+    "instance_id": "django__django-11001",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/sql/compiler.py b/django/db/models/sql/compiler.py\nindex 7649c39262..3d79c1215a 100644\n--- a/django/db/models/sql/compiler.py\n+++ b/django/db/models/sql/compiler.py\n@@ -353,7 +353,8 @@ class SQLCompiler:\n             # not taken into account so we strip it. When this entire method\n             # is refactored into expressions, then we can check each part as we\n             # generate it.\n-            without_ordering = self.ordering_parts.search(sql).group(1)\n+            sql_oneline = ' '.join(sql.split('\\n'))\n+        without_ordering = self.ordering_parts.search(sql_oneline).group(1)\n             params_hash = make_hashable(params)\n             if (without_ordering, params_hash) in seen:\n                 continue\n"
+  },
+  {
+    "instance_id": "django__django-11019",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/forms/widgets.py b/django/forms/widgets.py\nindex 02aa32b207..d71620b436 100644\n--- a/django/forms/widgets.py\n+++ b/django/forms/widgets.py\n@@ -115,7 +115,7 @@ class Media:\n         raise KeyError('Unknown media type \"%s\"' % name)\n \n     @staticmethod\n-    def merge(list_1, list_2):\n+        def merge(list_1, list_2):\n         \"\"\"\n         Merge two lists while trying to keep the relative order of the elements.\n         Warn if the lists have the same two elements in a different relative\n@@ -139,6 +139,9 @@ class Media:\n                 combined_list.insert(last_insert_index, path)\n             else:\n                 if index > last_insert_index:\n+                    # Check if the order is already correct\n+                    if combined_list[last_insert_index:index] == list_2[list_2.index(path)+1:]:\n+                        continue\n                     warnings.warn(\n                         'Detected duplicate Media files in an opposite order:\\n'\n                         '%s\\n%s' % (combined_list[last_insert_index], combined_list[index]),\n"
+  },
+  {
+    "instance_id": "django__django-11039",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/core/management/commands/sqlmigrate.py b/django/core/management/commands/sqlmigrate.py\nindex f0b663222a..5fb090b4aa 100644\n--- a/django/core/management/commands/sqlmigrate.py\n+++ b/django/core/management/commands/sqlmigrate.py\n@@ -55,8 +55,8 @@ class Command(BaseCommand):\n                 migration_name, app_label))\n         targets = [(app_label, migration.name)]\n \n-        # Show begin/end around output only for atomic migrations\n-        self.output_transaction = migration.atomic\n+        # Show begin/end around output only for atomic migrations and databases that support transactional DDL\n+        self.output_transaction = migration.atomic and connection.features.can_rollback_ddl\n \n         # Make a plan that represents just the requested migrations and show SQL\n         # for it\n"
+  },
+  {
+    "instance_id": "django__django-11049",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py\nindex f32ce64629..71005490f3 100644\n--- a/django/db/models/fields/__init__.py\n+++ b/django/db/models/fields/__init__.py\n@@ -1587,7 +1587,7 @@ class DurationField(Field):\n     empty_strings_allowed = False\n     default_error_messages = {\n         'invalid': _(\"'%(value)s' value has an invalid format. It must be in \"\n-                     \"[DD] [HH:[MM:]]ss[.uuuuuu] format.\")\n+                     \"[DD] [[HH:]MM:]ss[.uuuuuu] format.\")\n     }\n     description = _(\"Duration\")\n"
+  },
+  {
+    "instance_id": "django__django-11099",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-11133",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/backends/base/features.py b/django/db/backends/base/features.py\nindex 3417fdf1cd..39eac29475 100644\n--- a/django/db/backends/base/features.py\n+++ b/django/db/backends/base/features.py\n@@ -28,6 +28,9 @@ class BaseDatabaseFeatures:\n     uses_savepoints = True\n     can_release_savepoints = False\n \n+    # Add support for handling memoryview objects\n+    supports_memoryview_content = True\n+\n     # If True, don't use integer foreign keys referring to, e.g., positive\n     # integer primary keys.\n     related_fields_match_type = False\n"
+  },
+  {
+    "instance_id": "django__django-11179",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py\nindex 2307dcae25..689fe9d68c 100644\n--- a/django/db/models/fields/__init__.py\n+++ b/django/db/models/fields/__init__.py\n@@ -417,6 +417,11 @@ class Field(RegisterLookupMixin):\n          * top-level classes, top-level functions - will be referenced by their\n            full import path\n          * Storage instances - these have their own deconstruct() method\n+        \"\"\"\n+        name, path, args, kwargs = super().deconstruct()\n+        if self.primary_key:\n+            kwargs['primary_key'] = self.primary_key\n+        return name, path, args, kwargs\n \n         This is because the values here must be serialized into a text format\n         (possibly new Python code, possibly JSON) and these are the only types\n"
+  },
+  {
+    "instance_id": "django__django-11283",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/utils.py b/django/db/utils.py\nindex cb7f3d0f0b..2a8a7f6f2d 100644\n--- a/django/db/utils.py\n+++ b/django/db/utils.py\n@@ -48,6 +48,68 @@ class NotSupportedError(DatabaseError):\n     pass\n \n \n+class DatabaseErrorWrapper:\n+    \"\"\"\n+    Context manager and decorator that reraises backend-specific database\n+    exceptions using Django's common wrappers.\n+    \"\"\"\n+\n+    def __init__(self, wrapper):\n+        \"\"\"\n+        wrapper is a database wrapper.\n+\n+        It must have a Database attribute defining PEP-249 exceptions.\n+        \"\"\"\n+        self.wrapper = wrapper\n+\n+    def __enter__(self):\n+        pass\n+\n+    def __exit__(self, exc_type, exc_value, traceback):\n+        if exc_type is None:\n+            return\n+        for dj_exc_type in (\n+                DataError,\n+                OperationalError,\n+                IntegrityError,\n+                InternalError,\n+                ProgrammingError,\n+                NotSupportedError,\n+                DatabaseError,\n+                InterfaceError,\n+                Error,\n+        ):\n+            db_exc_type = getattr(self.wrapper.Database, dj_exc_type.__name__)\n+            if issubclass(exc_type, db_exc_type):\n+                dj_exc_value = dj_exc_type(*exc_value.args)\n+                # Only set the 'errors_occurred' flag for errors that may make\n+                # the connection unusable.\n+                if dj_exc_type not in (DataError, IntegrityError):\n+                    self.wrapper.errors_occurred = True\n+                raise dj_exc_value.with_traceback(traceback) from exc_value\n+\n+    def __call__(self, func):\n+        # Note that we are intentionally not using @wraps here for performance\n+        # reasons. Refs #21109.\n+        def inner(*args, **kwargs):\n+            with self:\n+                return func(*args, **kwargs)\n+        return inner\n+    pass\n+\n+\n+class InternalError(DatabaseError):\n+    pass\n+\n+\n+class ProgrammingError(DatabaseError):\n+    pass\n+\n+\n+class NotSupportedError(DatabaseError):\n+    pass\n+\n+\n class DatabaseErrorWrapper:\n     \"\"\"\n     Context manager and decorator that reraises backend-specific database\n"
+  },
+  {
+    "instance_id": "django__django-11422",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/utils/autoreload.py b/django/utils/autoreload.py\nindex 7ca0d68fae..d4731c558d 100644\n--- a/django/utils/autoreload.py\n+++ b/django/utils/autoreload.py\n@@ -346,6 +346,13 @@ class StatReloader(BaseReloader):\n             if file in seen_files:\n                 continue\n             try:\n+                # Ensure manage.py is always watched\n+                if file.name == 'manage.py':\n+                    yield file, file.stat().st_mtime\n+                else:\n+                    yield from super().snapshot_files()\n+            except OSError as e:\n+                logger.warning('Error accessing file %s: %s', file, e)\n                 mtime = file.stat().st_mtime\n             except OSError:\n                 # This is thrown when the file does not exist.\n"
+  },
+  {
+    "instance_id": "django__django-11564",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/conf/global_settings.py b/django/conf/global_settings.py\nindex 75935df0e1..7506403960 100644\n--- a/django/conf/global_settings.py\n+++ b/django/conf/global_settings.py\n@@ -4,6 +4,13 @@ by the DJANGO_SETTINGS_MODULE environment variable.\n \"\"\"\n \n \n+# This is defined here as a do-nothing function because we can't import\n+# django.utils.translation -- that module depends on the settings.\n+\"\"\"\n+Default Django settings. Override these with settings in the module pointed to\n+by the DJANGO_SETTINGS_MODULE environment variable.\n+\"\"\"\n+\n # This is defined here as a do-nothing function because we can't import\n # django.utils.translation -- that module depends on the settings.\n def gettext_noop(s):\n@@ -159,6 +166,199 @@ LANGUAGE_COOKIE_HTTPONLY = False\n LANGUAGE_COOKIE_SAMESITE = None\n \n \n+# If you set this to True, Django will format dates, numbers and calendars\n+# according to user current locale.\n+USE_L10N = False\n+\n+# Not-necessarily-technical managers of the site. They get broken link\n+# notifications and other various emails.\n+MANAGERS = ADMINS\n+\n+# Default charset to use for all HttpResponse objects, if a MIME type isn't\n+# manually specified. It's used to construct the Content-Type header.\n+DEFAULT_CHARSET = 'utf-8'\n+\n+# Email address that error messages come from.\n+SERVER_EMAIL = 'root@localhost'\n+\n+# Database connection info. If left empty, will default to the dummy backend.\n+DATABASES = {}\n+\n+# Classes used to implement DB routing behavior.\n+DATABASE_ROUTERS = []\n+\n+# The email backend to use. For possible shortcuts see django.core.mail.\n+# The default is to use the SMTP backend.\n+# Third-party backends can be specified by providing a Python path\n+# to a module that defines an EmailBackend class.\n+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'\n+\n+# Host for sending email.\n+EMAIL_HOST = 'localhost'\n+\n+# Port for sending email.\n+EMAIL_PORT = 25\n+\n+# Whether to send SMTP 'Date' header in the local time zone or in UTC.\n+EMAIL_USE_LOCALTIME = False\n+\n+# Optional SMTP authentication information for EMAIL_HOST.\n+EMAIL_HOST_USER = ''\n+EMAIL_HOST_PASSWORD = ''\n+EMAIL_USE_TLS = False\n+EMAIL_USE_SSL = False\n+    return s\n+\n+\n+####################\n+# CORE             #\n+####################\n+\n+DEBUG = False\n+\n+# Whether the framework should propagate raw exceptions rather than catching\n+# them. This is useful under some testing situations and should never be used\n+# on a live site.\n+DEBUG_PROPAGATE_EXCEPTIONS = False\n+\n+# People who get code error notifications.\n+# In the format [('Full Name', 'email@example.com'), ('Full Name', 'anotheremail@example.com')]\n+ADMINS = []\n+\n+# List of IP addresses, as strings, that:\n+#   * See debug comments, when DEBUG is true\n+#   * Receive x-headers\n+INTERNAL_IPS = []\n+\n+# Hosts/domain names that are valid for this site.\n+# \"*\" matches anything, \".example.com\" matches example.com and all subdomains\n+ALLOWED_HOSTS = []\n+\n+# Local time zone for this installation. All choices can be found here:\n+# https://en.wikipedia.org/wiki/List_of_tz_zones_by_name (although not all\n+# systems may support all possibilities). When USE_TZ is True, this is\n+# interpreted as the default user time zone.\n+TIME_ZONE = 'America/Chicago'\n+\n+# If you set this to True, Django will use timezone-aware datetimes.\n+USE_TZ = False\n+\n+# Language code for this installation. All choices can be found here:\n+# http://www.i18nguy.com/unicode/language-identifiers.html\n+LANGUAGE_CODE = 'en-us'\n+\n+# Languages we provide translations for, out of the box.\n+LANGUAGES = [\n+    ('af', gettext_noop('Afrikaans')),\n+    ('ar', gettext_noop('Arabic')),\n+    ('ast', gettext_noop('Asturian')),\n+    ('az', gettext_noop('Azerbaijani')),\n+    ('bg', gettext_noop('Bulgarian')),\n+    ('be', gettext_noop('Belarusian')),\n+    ('bn', gettext_noop('Bengali')),\n+    ('br', gettext_noop('Breton')),\n+    ('bs', gettext_noop('Bosnian')),\n+    ('ca', gettext_noop('Catalan')),\n+    ('cs', gettext_noop('Czech')),\n+    ('cy', gettext_noop('Welsh')),\n+    ('da', gettext_noop('Danish')),\n+    ('de', gettext_noop('German')),\n+    ('dsb', gettext_noop('Lower Sorbian')),\n+    ('el', gettext_noop('Greek')),\n+    ('en', gettext_noop('English')),\n+    ('en-au', gettext_noop('Australian English')),\n+    ('en-gb', gettext_noop('British English')),\n+    ('eo', gettext_noop('Esperanto')),\n+    ('es', gettext_noop('Spanish')),\n+    ('es-ar', gettext_noop('Argentinian Spanish')),\n+    ('es-co', gettext_noop('Colombian Spanish')),\n+    ('es-mx', gettext_noop('Mexican Spanish')),\n+    ('es-ni', gettext_noop('Nicaraguan Spanish')),\n+    ('es-ve', gettext_noop('Venezuelan Spanish')),\n+    ('et', gettext_noop('Estonian')),\n+    ('eu', gettext_noop('Basque')),\n+    ('fa', gettext_noop('Persian')),\n+    ('fi', gettext_noop('Finnish')),\n+    ('fr', gettext_noop('French')),\n+    ('fy', gettext_noop('Frisian')),\n+    ('ga', gettext_noop('Irish')),\n+    ('gd', gettext_noop('Scottish Gaelic')),\n+    ('gl', gettext_noop('Galician')),\n+    ('he', gettext_noop('Hebrew')),\n+    ('hi', gettext_noop('Hindi')),\n+    ('hr', gettext_noop('Croatian')),\n+    ('hsb', gettext_noop('Upper Sorbian')),\n+    ('hu', gettext_noop('Hungarian')),\n+    ('hy', gettext_noop('Armenian')),\n+    ('ia', gettext_noop('Interlingua')),\n+    ('id', gettext_noop('Indonesian')),\n+    ('io', gettext_noop('Ido')),\n+    ('is', gettext_noop('Icelandic')),\n+    ('it', gettext_noop('Italian')),\n+    ('ja', gettext_noop('Japanese')),\n+    ('ka', gettext_noop('Georgian')),\n+    ('kab', gettext_noop('Kabyle')),\n+    ('kk', gettext_noop('Kazakh')),\n+    ('km', gettext_noop('Khmer')),\n+    ('kn', gettext_noop('Kannada')),\n+    ('ko', gettext_noop('Korean')),\n+    ('lb', gettext_noop('Luxembourgish')),\n+    ('lt', gettext_noop('Lithuanian')),\n+    ('lv', gettext_noop('Latvian')),\n+    ('mk', gettext_noop('Macedonian')),\n+    ('ml', gettext_noop('Malayalam')),\n+    ('mn', gettext_noop('Mongolian')),\n+    ('mr', gettext_noop('Marathi')),\n+    ('my', gettext_noop('Burmese')),\n+    ('nb', gettext_noop('Norwegian Bokmål')),\n+    ('ne', gettext_noop('Nepali')),\n+    ('nl', gettext_noop('Dutch')),\n+    ('nn', gettext_noop('Norwegian Nynorsk')),\n+    ('os', gettext_noop('Ossetic')),\n+    ('pa', gettext_noop('Punjabi')),\n+    ('pl', gettext_noop('Polish')),\n+    ('pt', gettext_noop('Portuguese')),\n+    ('pt-br', gettext_noop('Brazilian Portuguese')),\n+    ('ro', gettext_noop('Romanian')),\n+    ('ru', gettext_noop('Russian')),\n+    ('sk', gettext_noop('Slovak')),\n+    ('sl', gettext_noop('Slovenian')),\n+    ('sq', gettext_noop('Albanian')),\n+    ('sr', gettext_noop('Serbian')),\n+    ('sr-latn', gettext_noop('Serbian Latin')),\n+    ('sv', gettext_noop('Swedish')),\n+    ('sw', gettext_noop('Swahili')),\n+    ('ta', gettext_noop('Tamil')),\n+    ('te', gettext_noop('Telugu')),\n+    ('th', gettext_noop('Thai')),\n+    ('tr', gettext_noop('Turkish')),\n+    ('tt', gettext_noop('Tatar')),\n+    ('udm', gettext_noop('Udmurt')),\n+    ('uk', gettext_noop('Ukrainian')),\n+    ('ur', gettext_noop('Urdu')),\n+    ('vi', gettext_noop('Vietnamese')),\n+    ('zh-hans', gettext_noop('Simplified Chinese')),\n+    ('zh-hant', gettext_noop('Traditional Chinese')),\n+]\n+\n+# Languages using BiDi (right-to-left) layout\n+LANGUAGES_BIDI = [\"he\", \"ar\", \"fa\", \"ur\"]\n+\n+# If you set this to False, Django will make some optimizations so as not\n+# to load the internationalization machinery.\n+USE_I18N = True\n+LOCALE_PATHS = []\n+\n+# Settings for language cookie\n+LANGUAGE_COOKIE_NAME = 'django_language'\n+LANGUAGE_COOKIE_AGE = None\n+LANGUAGE_COOKIE_DOMAIN = None\n+LANGUAGE_COOKIE_PATH = '/'\n+LANGUAGE_COOKIE_SECURE = False\n+LANGUAGE_COOKIE_HTTPONLY = False\n+LANGUAGE_COOKIE_SAMESITE = None\n+\n+\n # If you set this to True, Django will format dates, numbers and calendars\n # according to user current locale.\n USE_L10N = False\n"
+  },
+  {
+    "instance_id": "django__django-11583",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-11620",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/apps/registry.py b/django/apps/registry.py\nindex 408964a146..9da9f02efa 100644\n--- a/django/apps/registry.py\n+++ b/django/apps/registry.py\n@@ -200,7 +200,10 @@ class Apps:\n             self.check_apps_ready()\n \n         if model_name is None:\n-            app_label, model_name = app_label.split('.')\n+            try:\n+                app_label, model_name = app_label.split('.')\n+            except ValueError:\n+                raise ValueError(\"Invalid app_label format. Expected 'app_label.model_name'.\")\n \n         app_config = self.get_app_config(app_label)\n"
+  },
+  {
+    "instance_id": "django__django-11630",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-11742",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-11797",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/contrib/admin/decorators.py b/django/contrib/admin/decorators.py\nindex 0c2e35c2b2..568405f14f 100644\n--- a/django/contrib/admin/decorators.py\n+++ b/django/contrib/admin/decorators.py\n@@ -28,3 +28,6 @@ def register(*models, site=None):\n \n         return admin_class\n     return _model_admin_wrapper\n+\n+        return admin_class\n+    return _model_admin_wrapper\n"
+  },
+  {
+    "instance_id": "django__django-11815",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/migrations/serializer.py b/django/db/migrations/serializer.py\nindex 27b5cbd379..ffa0801008 100644\n--- a/django/db/migrations/serializer.py\n+++ b/django/db/migrations/serializer.py\n@@ -120,9 +120,9 @@ class EnumSerializer(BaseSerializer):\n     def serialize(self):\n         enum_class = self.value.__class__\n         module = enum_class.__module__\n-        v_string, v_imports = serializer_factory(self.value.value).serialize()\n+        v_string, v_imports = serializer_factory(self.value.name).serialize()\n         imports = {'import %s' % module, *v_imports}\n-        return \"%s.%s(%s)\" % (module, enum_class.__name__, v_string), imports\n+        return \"%s.%s['%s']\" % (module, enum_class.__name__, v_string), imports\n \n \n class FloatSerializer(BaseSimpleSerializer):\n"
+  },
+  {
+    "instance_id": "django__django-11848",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-11905",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/lookups.py b/django/db/models/lookups.py\nindex 9344979c56..98b64f0a74 100644\n--- a/django/db/models/lookups.py\n+++ b/django/db/models/lookups.py\n@@ -457,11 +457,22 @@ class Range(FieldGetDbPrepValueIterableMixin, BuiltinLookup):\n         return \"BETWEEN %s AND %s\" % (rhs[0], rhs[1])\n \n \n+@Field.register_lookup\n @Field.register_lookup\n class IsNull(BuiltinLookup):\n     lookup_name = 'isnull'\n     prepare_rhs = False\n \n+    def process_rhs(self, qn, connection):\n+        rhs, params = super().process_rhs(qn, connection)\n+        if params and not isinstance(params[0], bool):\n+            raise ValueError('The value for an isnull lookup must be a boolean.')\n+        if params:\n+            params[0] = connection.ops.prep_for_isnull_query(params[0])\n+        return rhs, params\n+    lookup_name = 'isnull'\n+    prepare_rhs = False\n+\n     def as_sql(self, compiler, connection):\n         sql, params = compiler.compile(self.lhs)\n         if self.rhs:\n"
+  },
+  {
+    "instance_id": "django__django-11910",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py\nindex d610dc86f0..799931b7c3 100644\n--- a/django/db/models/fields/__init__.py\n+++ b/django/db/models/fields/__init__.py\n@@ -702,7 +702,7 @@ class Field(RegisterLookupMixin):\n             return db_type % self.db_type_parameters(connection)\n         return self.db_type(connection)\n \n-    def db_parameters(self, connection):\n+        def db_parameters(self, connection):\n         \"\"\"\n         Extension of db_type(), providing a range of different return values\n         (type, checks). This will look at db_type(), allowing custom model\n@@ -716,6 +716,7 @@ class Field(RegisterLookupMixin):\n         }\n \n     def db_type_suffix(self, connection):\n+        return \"\"\n         return connection.data_types_suffix.get(self.get_internal_type())\n \n     def get_db_converters(self, connection):\n"
+  },
+  {
+    "instance_id": "django__django-11964",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-11999",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py\nindex ee45bb941e..09accaa75a 100644\n--- a/django/db/models/fields/__init__.py\n+++ b/django/db/models/fields/__init__.py\n@@ -972,6 +972,9 @@ class CharField(Field):\n         super().__init__(*args, **kwargs)\n         self.validators.append(validators.MaxLengthValidator(self.max_length))\n \n+    def get_FOO_display(self):\n+        return \"something\"\n+\n     def check(self, **kwargs):\n         return [\n             *super().check(**kwargs),\n"
+  },
+  {
+    "instance_id": "django__django-12113",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/utils.py b/django/db/utils.py\nindex 28afa6cd07..bc643f7dea 100644\n--- a/django/db/utils.py\n+++ b/django/db/utils.py\n@@ -97,6 +97,48 @@ class DatabaseErrorWrapper:\n                 return func(*args, **kwargs)\n         return inner\n \n+    def __init__(self, wrapper):\n+        \"\"\"\n+        wrapper is a database wrapper.\n+\n+        It must have a Database attribute defining PEP-249 exceptions.\n+        \"\"\"\n+        self.wrapper = wrapper\n+\n+    def __enter__(self):\n+        pass\n+\n+    def __exit__(self, exc_type, exc_value, traceback):\n+        if exc_type is None:\n+            return\n+        for dj_exc_type in (\n+                DataError,\n+                OperationalError,\n+                IntegrityError,\n+                InternalError,\n+                ProgrammingError,\n+                NotSupportedError,\n+                DatabaseError,\n+                InterfaceError,\n+                Error,\n+        ):\n+            db_exc_type = getattr(self.wrapper.Database, dj_exc_type.__name__)\n+            if issubclass(exc_type, db_exc_type):\n+                dj_exc_value = dj_exc_type(*exc_value.args)\n+                # Only set the 'errors_occurred' flag for errors that may make\n+                # the connection unusable.\n+                if dj_exc_type not in (DataError, IntegrityError):\n+                    self.wrapper.errors_occurred = True\n+                raise dj_exc_value.with_traceback(traceback) from exc_value\n+\n+    def __call__(self, func):\n+        # Note that we are intentionally not using @wraps here for performance\n+        # reasons. Refs #21109.\n+        def inner(*args, **kwargs):\n+            with self:\n+                return func(*args, **kwargs)\n+        return inner\n+\n \n def load_backend(backend_name):\n     \"\"\"\n"
+  },
+  {
+    "instance_id": "django__django-12125",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/migrations/serializer.py b/django/db/migrations/serializer.py\nindex 7d226955d5..7c3abb3742 100644\n--- a/django/db/migrations/serializer.py\n+++ b/django/db/migrations/serializer.py\n@@ -326,6 +326,8 @@ def serializer_factory(value):\n     if isinstance(value, Operation):\n         return OperationSerializer(value)\n     if isinstance(value, type):\n+        if value.__module__ == \"django.db.models\":\n+            return ModelFieldSerializer(value)\n         return TypeSerializer(value)\n     # Anything that knows how to deconstruct itself.\n     if hasattr(value, 'deconstruct'):\n"
+  },
+  {
+    "instance_id": "django__django-12184",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/apps/registry.py b/django/apps/registry.py\nindex 408964a146..25266a25a5 100644\n--- a/django/apps/registry.py\n+++ b/django/apps/registry.py\n@@ -291,7 +291,7 @@ class Apps:\n             if swapped and swapped == to_string:\n                 return model._meta.swappable\n             # Is this model swappable and the one given by to_string?\n-            if model._meta.swappable and model._meta.label == to_string:\n+            if model._meta.swappable and model._meta.label_lower == to_string.lower():\n                 return model._meta.swappable\n         return None\n"
+  },
+  {
+    "instance_id": "django__django-12284",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-12286",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/apps/config.py b/django/apps/config.py\nindex f5c971fc9c..79747d9db7 100644\n--- a/django/apps/config.py\n+++ b/django/apps/config.py\n@@ -48,6 +48,20 @@ class AppConfig:\n         # None to prevent accidental access before import_models() runs.\n         self.models = None\n \n+        # Filesystem path to the application directory e.g.\n+        # '/path/to/django/contrib/admin'.\n+        if not hasattr(self, 'path'):\n+            self.path = self._path_from_module(app_module)\n+\n+        # Module containing models e.g. <module 'django.contrib.admin.models'\n+        # from 'django/contrib/admin/models.py'>. Set by import_models().\n+        # None if the application doesn't have a models module.\n+        self.models_module = None\n+\n+        # Mapping of lowercase model names to model classes. Initially set to\n+        # None to prevent accidental access before import_models() runs.\n+        self.models = None\n+\n     def __repr__(self):\n         return '<%s: %s>' % (self.__class__.__name__, self.label)\n"
+  },
+  {
+    "instance_id": "django__django-12308",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py\nindex 0fd69059ee..8d1277ba8a 100644\n--- a/django/db/models/fields/__init__.py\n+++ b/django/db/models/fields/__init__.py\n@@ -464,6 +464,8 @@ class Field(RegisterLookupMixin):\n             \"unique_for_year\": None,\n             \"choices\": None,\n             \"help_text\": '',\n+            \"json_field\": False,  # Add this line to handle JSONField\n+        }\n             \"db_column\": None,\n             \"db_tablespace\": None,\n             \"auto_created\": False,\n"
+  },
+  {
+    "instance_id": "django__django-12453",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/backends/base/creation.py b/django/db/backends/base/creation.py\nindex c50fc90171..f9eab0b8c4 100644\n--- a/django/db/backends/base/creation.py\n+++ b/django/db/backends/base/creation.py\n@@ -126,8 +126,9 @@ class BaseDatabaseCreation:\n         the serialize_db_to_string() method.\n         \"\"\"\n         data = StringIO(data)\n-        for obj in serializers.deserialize(\"json\", data, using=self.connection.alias):\n-            obj.save()\n+        with transaction.atomic(using=self.connection.alias):\n+            for obj in serializers.deserialize(\"json\", data, using=self.connection.alias):\n+                obj.save()\n \n     def _get_database_display_str(self, verbosity, database_name):\n         \"\"\"\n"
+  },
+  {
+    "instance_id": "django__django-12470",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/fields/related_descriptors.py b/django/db/models/fields/related_descriptors.py\nindex 20f247c603..598f410087 100644\n--- a/django/db/models/fields/related_descriptors.py\n+++ b/django/db/models/fields/related_descriptors.py\n@@ -80,6 +80,9 @@ class ForeignKeyDeferredAttribute(DeferredAttribute):\n \n \n class ForwardManyToOneDescriptor:\n+    def __init__(self, field_with_rel):\n+        self.field = field_with_rel\n+        self.ordering = getattr(self.field.remote_field.model._meta, 'ordering', [])\n     \"\"\"\n     Accessor to the related object on the forward side of a many-to-one or\n     one-to-one (via ForwardOneToOneDescriptor subclass) relation.\n"
+  },
+  {
+    "instance_id": "django__django-12497",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-12589",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-12700",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/views/debug.py b/django/views/debug.py\nindex e6b7d4d821..c2aa6aae75 100644\n--- a/django/views/debug.py\n+++ b/django/views/debug.py\n@@ -90,6 +90,8 @@ class SafeExceptionReporterFilter:\n                 cleansed = self.cleansed_substitute\n             elif isinstance(value, dict):\n                 cleansed = {k: self.cleanse_setting(k, v) for k, v in value.items()}\n+            elif isinstance(value, (list, tuple)):\n+                cleansed = [self.cleanse_setting(None, v) for v in value]\n             else:\n                 cleansed = value\n         except TypeError:\n"
+  },
+  {
+    "instance_id": "django__django-12708",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/backends/base/schema.py b/django/db/backends/base/schema.py\nindex 61f88401ab..7ef48b48e7 100644\n--- a/django/db/backends/base/schema.py\n+++ b/django/db/backends/base/schema.py\n@@ -338,6 +338,9 @@ class BaseDatabaseSchemaEditor:\n             if field.remote_field.through._meta.auto_created:\n                 self.delete_model(field.remote_field.through)\n \n+        # Remove any field index and index_together's before deleting the table\n+        self.deferred_sql.extend(self._model_indexes_sql(model, delete=True))\n+\n         # Delete the table\n         self.execute(self.sql_delete_table % {\n             \"table\": self.quote_name(model._meta.db_table),\n"
+  },
+  {
+    "instance_id": "django__django-12747",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/conf/global_settings.py b/django/conf/global_settings.py\nindex 8bb59a4037..463f66765e 100644\n--- a/django/conf/global_settings.py\n+++ b/django/conf/global_settings.py\n@@ -33,6 +33,7 @@ INTERNAL_IPS = []\n # Hosts/domain names that are valid for this site.\n # \"*\" matches anything, \".example.com\" matches example.com and all subdomains\n ALLOWED_HOSTS = []\n+ALLOWED_HOSTS = []\n \n # Local time zone for this installation. All choices can be found here:\n # https://en.wikipedia.org/wiki/List_of_tz_zones_by_name (although not all\n"
+  },
+  {
+    "instance_id": "django__django-12856",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/base.py b/django/db/models/base.py\nindex 7bb3fa4706..750a08e4fa 100644\n--- a/django/db/models/base.py\n+++ b/django/db/models/base.py\n@@ -1277,6 +1277,7 @@ class Model(metaclass=ModelBase):\n             errors += [\n                 *cls._check_index_together(),\n                 *cls._check_unique_together(),\n+                *cls._check_unique_constraints(),\n                 *cls._check_indexes(databases),\n                 *cls._check_ordering(),\n                 *cls._check_constraints(databases),\n"
+  },
+  {
+    "instance_id": "django__django-12908",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py\nindex 0fd69059ee..07505c23fd 100644\n--- a/django/db/models/fields/__init__.py\n+++ b/django/db/models/fields/__init__.py\n@@ -1765,6 +1765,33 @@ class IntegerField(Field):\n         ):\n             validators_.append(validators.MaxValueValidator(max_value))\n         return validators_\n+    def validators(self):\n+        # These validators can't be added at field initialization time since\n+        # they're based on values retrieved from `connection`.\n+        validators_ = super().validators\n+        internal_type = self.get_internal_type()\n+        min_value, max_value = connection.ops.integer_field_range(internal_type)\n+        if min_value is not None and not any(\n+            (\n+                isinstance(validator, validators.MinValueValidator) and (\n+                    validator.limit_value()\n+                    if callable(validator.limit_value)\n+                    else validator.limit_value\n+                ) >= min_value\n+            ) for validator in validators_\n+        ):\n+            validators_.append(validators.MinValueValidator(min_value))\n+        if max_value is not None and not any(\n+            (\n+                isinstance(validator, validators.MaxValueValidator) and (\n+                    validator.limit_value()\n+                    if callable(validator.limit_value)\n+                    else validator.limit_value\n+                ) <= max_value\n+            ) for validator in validators_\n+        ):\n+            validators_.append(validators.MaxValueValidator(max_value))\n+        return validators_\n \n     def get_prep_value(self, value):\n         value = super().get_prep_value(value)\n"
+  },
+  {
+    "instance_id": "django__django-12915",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/conf/__init__.py b/django/conf/__init__.py\nindex ec7efadf46..29cbaa0606 100644\n--- a/django/conf/__init__.py\n+++ b/django/conf/__init__.py\n@@ -132,6 +132,7 @@ class LazySettings(LazyObject):\n \n     @property\n     def configured(self):\n+        return self._wrapped is not empty\n         \"\"\"Return True if the settings have already been configured.\"\"\"\n         return self._wrapped is not empty\n"
+  },
+  {
+    "instance_id": "django__django-12983",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/apps/config.py b/django/apps/config.py\nindex 2728503d62..e43c11a180 100644\n--- a/django/apps/config.py\n+++ b/django/apps/config.py\n@@ -47,6 +47,26 @@ class AppConfig:\n         # Mapping of lowercase model names to model classes. Initially set to\n         # None to prevent accidental access before import_models() runs.\n         self.models = None\n+        if not hasattr(self, 'label'):\n+            self.label = app_name.rpartition(\".\")[2]\n+\n+        # Human-readable name for the application e.g. \"Admin\".\n+        if not hasattr(self, 'verbose_name'):\n+            self.verbose_name = self.label.title()\n+\n+        # Filesystem path to the application directory e.g.\n+        # '/path/to/django/contrib/admin'.\n+        if not hasattr(self, 'path'):\n+            self.path = self._path_from_module(app_module)\n+\n+        # Module containing models e.g. <module 'django.contrib.admin.models'\n+        # from 'django/contrib/admin/models.py'>. Set by import_models().\n+        # None if the application doesn't have a models module.\n+        self.models_module = None\n+\n+        # Mapping of lowercase model names to model classes. Initially set to\n+        # None to prevent accidental access before import_models() runs.\n+        self.models = None\n \n     def __repr__(self):\n         return '<%s: %s>' % (self.__class__.__name__, self.label)\n"
+  },
+  {
+    "instance_id": "django__django-13028",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-13033",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-13158",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-13220",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-13230",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/contrib/syndication/views.py b/django/contrib/syndication/views.py\nindex 68ffb0bfe0..42f37977f8 100644\n--- a/django/contrib/syndication/views.py\n+++ b/django/contrib/syndication/views.py\n@@ -105,7 +105,11 @@ class Feed:\n         Return an extra keyword arguments dictionary that is used with\n         the `add_item` call of the feed generator.\n         \"\"\"\n-        return {}\n+        extra_kwargs = super().item_extra_kwargs(item)\n+        comments = self._get_dynamic_attr('item_comments', item)\n+        if comments:\n+            extra_kwargs['comments'] = comments\n+        return extra_kwargs\n \n     def get_object(self, request, *args, **kwargs):\n         return None\n"
+  },
+  {
+    "instance_id": "django__django-13265",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-13315",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py\nindex 2bce85beef..c1693339f5 100644\n--- a/django/db/models/fields/__init__.py\n+++ b/django/db/models/fields/__init__.py\n@@ -742,6 +742,7 @@ class Field(RegisterLookupMixin):\n         }\n \n     def db_type_suffix(self, connection):\n+        return \"\"\n         return connection.data_types_suffix.get(self.get_internal_type())\n \n     def get_db_converters(self, connection):\n"
+  },
+  {
+    "instance_id": "django__django-13321",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-13401",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-13447",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/apps/config.py b/django/apps/config.py\nindex 7dfb4b4e15..1b2d8a6f37 100644\n--- a/django/apps/config.py\n+++ b/django/apps/config.py\n@@ -282,6 +282,30 @@ class AppConfig:\n         Set the corresponding keyword argument to True to include such models.\n         Keyword arguments aren't documented; they're a private API.\n         \"\"\"\n+        return self.models.values()\n+\n+    def _build_app_dict(self):\n+        \"\"\"\n+        Build the app dictionary for the admin index.\n+        \"\"\"\n+        app_dict = {}\n+        for model in self.get_models():\n+            app_label = model._meta.app_label\n+            if app_label not in app_dict:\n+                app_dict[app_label] = {\n+                    'name': app_label.title(),\n+                    'app_label': app_label,\n+                    'models': [],\n+                }\n+            app_dict[app_label]['models'].append({\n+                'name': model._meta.verbose_name,\n+                'object_name': model._meta.object_name,\n+                'admin_url': model._meta.admin_url,\n+                'add_url': model._meta.add_url,\n+                'model': model,  # Include the model class\n+            })\n+        return app_dict\n+        \"\"\"\n         self.apps.check_models_ready()\n         for model in self.models.values():\n             if model._meta.auto_created and not include_auto_created:\n"
+  },
+  {
+    "instance_id": "django__django-13448",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/backends/base/creation.py b/django/db/backends/base/creation.py\nindex 503f7f56fd..a866f2586c 100644\n--- a/django/db/backends/base/creation.py\n+++ b/django/db/backends/base/creation.py\n@@ -70,6 +70,9 @@ class BaseDatabaseCreation:\n                 run_syncdb=True,\n             )\n \n+        # Ensure a connection for the side effect of initializing the test database.\n+        self.connection.ensure_connection()\n+\n         # We then serialize the current state of the database into a string\n         # and store it on the connection. This slightly horrific process is so people\n         # who are testing on databases without transactions or who are using\n@@ -79,9 +82,6 @@ class BaseDatabaseCreation:\n \n         call_command('createcachetable', database=self.connection.alias)\n \n-        # Ensure a connection for the side effect of initializing the test database.\n-        self.connection.ensure_connection()\n-\n         return test_database_name\n \n     def set_as_test_mirror(self, primary_settings_dict):\n"
+  },
+  {
+    "instance_id": "django__django-13551",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/conf/global_settings.py b/django/conf/global_settings.py\nindex 381ad63ae6..8cb47fe4ea 100644\n--- a/django/conf/global_settings.py\n+++ b/django/conf/global_settings.py\n@@ -33,6 +33,7 @@ INTERNAL_IPS = []\n # Hosts/domain names that are valid for this site.\n # \"*\" matches anything, \".example.com\" matches example.com and all subdomains\n ALLOWED_HOSTS = []\n+ALLOWED_HOSTS = []\n \n # Local time zone for this installation. All choices can be found here:\n # https://en.wikipedia.org/wiki/List_of_tz_zones_by_name (although not all\n"
+  },
+  {
+    "instance_id": "django__django-13590",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py\nindex 2bce85beef..28089f20d2 100644\n--- a/django/db/models/fields/__init__.py\n+++ b/django/db/models/fields/__init__.py\n@@ -285,6 +285,9 @@ class Field(RegisterLookupMixin):\n             if isinstance(choices_group, str):\n                 break\n         else:\n+            # Ensure choice_max_length is set to the maximum length found\n+            if self.max_length is not None:\n+                self.max_length = max(self.max_length, choice_max_length)\n             if self.max_length is not None and choice_max_length > self.max_length:\n                 return [\n                     checks.Error(\n"
+  },
+  {
+    "instance_id": "django__django-13658",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/apps/config.py b/django/apps/config.py\nindex 928e19ac44..4d355ff312 100644\n--- a/django/apps/config.py\n+++ b/django/apps/config.py\n@@ -287,6 +287,9 @@ class AppConfig:\n             self.models_module = import_module(models_module_name)\n \n     def ready(self):\n+        \"\"\"\n+        This method is called once the application registry is fully populated.\n+        Subclasses can override this method to perform initialization tasks.\n         \"\"\"\n         Override this method in subclasses to run code when Django starts.\n         \"\"\"\n"
+  },
+  {
+    "instance_id": "django__django-13660",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-13710",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/contrib/auth/management/commands/changepassword.py b/django/contrib/auth/management/commands/changepassword.py\nindex b0c0a7f59a..d7cdcf148f 100644\n--- a/django/contrib/auth/management/commands/changepassword.py\n+++ b/django/contrib/auth/management/commands/changepassword.py\n@@ -30,6 +30,10 @@ class Command(BaseCommand):\n             default=DEFAULT_DB_ALIAS,\n             help='Specifies the database to use. Default is \"default\".',\n         )\n+        parser.add_argument(\n+            '--new-password',\n+            help='New password for the user.',\n+        )\n \n     def handle(self, *args, **options):\n         if options['username']:\n"
+  },
+  {
+    "instance_id": "django__django-13757",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-13768",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/dispatch/dispatcher.py b/django/dispatch/dispatcher.py\nindex b7d9d26389..dd74ddf4f4 100644\n--- a/django/dispatch/dispatcher.py\n+++ b/django/dispatch/dispatcher.py\n@@ -174,10 +174,15 @@ class Signal:\n         if not self.receivers or self.sender_receivers_cache.get(sender) is NO_RECEIVERS:\n             return []\n \n-        return [\n-            (receiver, receiver(signal=self, sender=sender, **named))\n-            for receiver in self._live_receivers(sender)\n-        ]\n+        responses = []\n+        for receiver in self._live_receivers(sender):\n+            try:\n+                response = receiver(signal=self, sender=sender, **named)\n+                responses.append((receiver, response))\n+            except Exception as e:\n+                logger.exception(f\"Error in signal receiver {receiver}: {e}\")\n+                responses.append((receiver, e))\n+        return responses\n \n     def send_robust(self, sender, **named):\n         \"\"\"\n"
+  },
+  {
+    "instance_id": "django__django-13925",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-13933",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-13964",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/base.py b/django/db/models/base.py\nindex 2428218696..a491595b22 100644\n--- a/django/db/models/base.py\n+++ b/django/db/models/base.py\n@@ -427,6 +427,8 @@ class Model(metaclass=ModelBase):\n \n         if not kwargs:\n             fields_iter = iter(opts.concrete_fields)\n+        else:\n+            fields_iter = iter(kwargs.keys())\n             # The ordering of the zip calls matter - zip throws StopIteration\n             # when an iter throws it. So if the first iter throws it, the second\n             # is *not* consumed. We rely on this, so don't change the order\n"
+  },
+  {
+    "instance_id": "django__django-14016",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py\nindex 0f53d9c30b..5fef85420e 100644\n--- a/django/db/models/fields/__init__.py\n+++ b/django/db/models/fields/__init__.py\n@@ -284,6 +284,9 @@ class Field(RegisterLookupMixin):\n             if isinstance(choices_group, str):\n                 break\n         else:\n+            # Ensure that the choices are picklable\n+            if not all(isinstance(choice, (list, tuple)) for choice in group_choices):\n+                raise TypeError(\"Choices must be a list of pairs.\")\n             if self.max_length is not None and choice_max_length > self.max_length:\n                 return [\n                     checks.Error(\n"
+  },
+  {
+    "instance_id": "django__django-14017",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-14155",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/apps/config.py b/django/apps/config.py\nindex 7dfb4b4e15..6d57591c01 100644\n--- a/django/apps/config.py\n+++ b/django/apps/config.py\n@@ -58,6 +58,15 @@ class AppConfig:\n         self.models = None\n \n     def __repr__(self):\n+        if callable(self.module) and hasattr(self.module, 'func'):\n+            view_name = self.module.func.__name__\n+            args = ', '.join(map(repr, self.module.args))\n+            kwargs = ', '.join(f'{k}={v!r}' for k, v in self.module.keywords.items())\n+            if args and kwargs:\n+                args += ', ' + kwargs\n+            elif kwargs:\n+                args = kwargs\n+            return f'<{self.__class__.__name__}: {view_name}({args})>'\n         return '<%s: %s>' % (self.__class__.__name__, self.label)\n \n     @cached_property\n"
+  },
+  {
+    "instance_id": "django__django-14238",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-14382",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/core/management/templates.py b/django/core/management/templates.py\nindex 8dc6068286..f248ab1b71 100644\n--- a/django/core/management/templates.py\n+++ b/django/core/management/templates.py\n@@ -74,7 +74,7 @@ class TemplateCommand(BaseCommand):\n                 raise CommandError(e)\n         else:\n             if app_or_project == 'app':\n-                self.validate_name(os.path.basename(target), 'directory')\n+                self.validate_name(os.path.basename(target.rstrip(os.sep)), 'directory')\n             top_dir = os.path.abspath(os.path.expanduser(target))\n             if not os.path.exists(top_dir):\n                 raise CommandError(\"Destination directory '%s' does not \"\n"
+  },
+  {
+    "instance_id": "django__django-14411",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-14534",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/forms/boundfield.py b/django/forms/boundfield.py\nindex 2ff8b0ee26..215f5f1b24 100644\n--- a/django/forms/boundfield.py\n+++ b/django/forms/boundfield.py\n@@ -270,6 +270,9 @@ class BoundWidget:\n         return self.parent_widget._render(self.template_name, context, self.renderer)\n \n     @property\n+    def id_for_label(self):\n+        return self.data.get('attrs', {}).get('id')\n+***\n     def template_name(self):\n         if 'template_name' in self.data:\n             return self.data['template_name']\n"
+  },
+  {
+    "instance_id": "django__django-14580",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-14608",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/core/handlers/asgi.py b/django/core/handlers/asgi.py\nindex 2b8cc8b76e..b7a5c533de 100644\n--- a/django/core/handlers/asgi.py\n+++ b/django/core/handlers/asgi.py\n@@ -287,6 +287,11 @@ class ASGIHandler(base.BaseHandler):\n             position += cls.chunk_size\n \n     def get_script_prefix(self, scope):\n+        # Custom logic to handle script prefix\n+        script_prefix = scope.get('root_path', '')\n+        if script_prefix and scope['path'].startswith(script_prefix):\n+            return script_prefix\n+        return ''\n         \"\"\"\n         Return the script prefix to use from either the scope or a setting.\n         \"\"\"\n"
+  },
+  {
+    "instance_id": "django__django-14667",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-14672",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-14730",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-14752",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/contrib/admin/options.py b/django/contrib/admin/options.py\nindex dadd4acfa1..9e0dcd771f 100644\n--- a/django/contrib/admin/options.py\n+++ b/django/contrib/admin/options.py\n@@ -573,6 +573,9 @@ class ModelAdmin(BaseModelAdmin):\n     change_list_template = None\n     delete_confirmation_template = None\n     delete_selected_confirmation_template = None\n+\n+    def serialize_result(self, obj, to_field_name):\n+        return {'id': str(getattr(obj, to_field_name)), 'text': str(obj)}\n     object_history_template = None\n     popup_response_template = None\n"
+  },
+  {
+    "instance_id": "django__django-14787",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/apps/registry.py b/django/apps/registry.py\nindex 62650ca4bc..b17fef2abd 100644\n--- a/django/apps/registry.py\n+++ b/django/apps/registry.py\n@@ -399,10 +399,10 @@ class Apps:\n             # This will be executed after the class corresponding to next_model\n             # has been imported and registered. The `func` attribute provides\n             # duck-type compatibility with partials.\n+            @functools.wraps(function)\n             def apply_next_model(model):\n-                next_function = partial(apply_next_model.func, model)\n+                next_function = partial(apply_next_model, model)\n                 self.lazy_model_operation(next_function, *more_models)\n-            apply_next_model.func = function\n \n             # If the model has already been imported and registered, partially\n             # apply it to the function now. If not, add it to the list of\n"
+  },
+  {
+    "instance_id": "django__django-14855",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/contrib/admin/helpers.py b/django/contrib/admin/helpers.py\nindex dd154f72ee..a40c17c620 100644\n--- a/django/contrib/admin/helpers.py\n+++ b/django/contrib/admin/helpers.py\n@@ -209,7 +209,11 @@ class AdminReadonlyField:\n             remote_field.model._meta.model_name,\n         )\n         try:\n-            url = reverse(url_name, args=[quote(remote_obj.pk)])\n+            url = reverse(\n+    url_name,\n+    args=[quote(remote_obj.pk)],\n+    current_app=self.model_admin.admin_site.name\n+)\n             return format_html('<a href=\"{}\">{}</a>', url, remote_obj)\n         except NoReverseMatch:\n             return str(remote_obj)\n"
+  },
+  {
+    "instance_id": "django__django-14915",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/fields/__init__.py b/django/db/models/fields/__init__.py\nindex 0e72a09e59..7e516e361d 100644\n--- a/django/db/models/fields/__init__.py\n+++ b/django/db/models/fields/__init__.py\n@@ -84,6 +84,49 @@ def return_None():\n \n @total_ordering\n class Field(RegisterLookupMixin):\n+    def _description(self):\n+    def __init__(self, verbose_name=None, name=None, primary_key=False,\n+    def __str__(self):\n+    def __repr__(self):\n+    def check(self, **kwargs):\n+    def _check_field_name(self):\n+    def _choices_is_value(cls, value):\n+    def _check_choices(self):\n+    def _check_db_index(self):\n+    def _check_null_allowed_for_primary_keys(self):\n+    def _check_backend_specific_checks(self, databases=None, **kwargs):\n+    def _check_validators(self):\n+    def _check_deprecation_details(self):\n+    def get_col(self, alias, output_field=None):\n+    def cached_col(self):\n+    def select_format(self, compiler, sql, params):\n+    def deconstruct(self):\n+    def clone(self):\n+    def __eq__(self, other):\n+    def __lt__(self, other):\n+    def __hash__(self):\n+        return hash(self.name)\n+    def __deepcopy__(self, memodict):\n+    def __copy__(self):\n+    def __reduce__(self):\n+    def get_pk_value_on_save(self, instance):\n+    def to_python(self, value):\n+    def validators(self):\n+    def run_validators(self, value):\n+    def validate(self, value, model_instance):\n+    def clean(self, value, model_instance):\n+    def db_type_parameters(self, connection):\n+    def db_check(self, connection):\n+    def db_type(self, connection):\n+    def rel_db_type(self, connection):\n+    def cast_db_type(self, connection):\n+    def db_parameters(self, connection):\n+    def db_type_suffix(self, connection):\n+    def get_db_converters(self, connection):\n+    def unique(self):\n+    def db_tablespace(self):\n+    def db_returning(self):\n+    def set_attributes_from_name(self, name):\n     \"\"\"Base class for all field types\"\"\"\n \n     # Designates whether empty strings fundamentally are allowed at the\n"
+  },
+  {
+    "instance_id": "django__django-14997",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-14999",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-15061",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/forms/widgets.py b/django/forms/widgets.py\nindex 00c19e2c55..09e1df42cb 100644\n--- a/django/forms/widgets.py\n+++ b/django/forms/widgets.py\n@@ -817,6 +817,9 @@ class MultiWidget(Widget):\n     def is_hidden(self):\n         return all(w.is_hidden for w in self.widgets)\n \n+    def id_for_label(self, id_):\n+        return id_\n+\n     def get_context(self, name, value, attrs):\n         context = super().get_context(name, value, attrs)\n         if self.is_localized:\n"
+  },
+  {
+    "instance_id": "django__django-15202",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-15213",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-15252",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/migrations/executor.py b/django/db/migrations/executor.py\nindex aa2fe0883b..17feaa6cc1 100644\n--- a/django/db/migrations/executor.py\n+++ b/django/db/migrations/executor.py\n@@ -19,6 +19,9 @@ class MigrationExecutor:\n         self.recorder = MigrationRecorder(self.connection)\n         self.progress_callback = progress_callback\n \n+    def _should_record(self):\n+        return router.allow_migrate(self.connection.alias, None, model=MigrationRecorder.Migration)\n+\n     def migration_plan(self, targets, clean_start=False):\n         \"\"\"\n         Given a set of targets, return a list of (Migration instance, backwards?).\n"
+  },
+  {
+    "instance_id": "django__django-15320",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-15347",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/contrib/messages/storage/cookie.py b/django/contrib/messages/storage/cookie.py\nindex 1d390c71dd..e48d4edb08 100644\n--- a/django/contrib/messages/storage/cookie.py\n+++ b/django/contrib/messages/storage/cookie.py\n@@ -19,7 +19,7 @@ class MessageEncoder(json.JSONEncoder):\n             # Using 0/1 here instead of False/True to produce more compact json\n             is_safedata = 1 if isinstance(obj.message, SafeData) else 0\n             message = [self.message_key, is_safedata, obj.level, obj.message]\n-            if obj.extra_tags:\n+            if obj.extra_tags is not None:\n                 message.append(obj.extra_tags)\n             return message\n         return super().default(obj)\n"
+  },
+  {
+    "instance_id": "django__django-15388",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-15400",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/utils/functional.py b/django/utils/functional.py\nindex 9e1be0fe0f..b367ae5b1b 100644\n--- a/django/utils/functional.py\n+++ b/django/utils/functional.py\n@@ -195,7 +195,9 @@ def lazy(func, *resultclasses):\n             return self.__cast() + other\n \n         def __radd__(self, other):\n-            return other + self.__cast()\n+            if self._wrapped is empty:\n+                self._setup()\n+            return other + self._wrapped\n \n         def __deepcopy__(self, memo):\n             # Instances of this class are effectively immutable. It's just a\n"
+  },
+  {
+    "instance_id": "django__django-15498",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-15695",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/utils.py b/django/db/utils.py\nindex e45f1db249..9c21929566 100644\n--- a/django/db/utils.py\n+++ b/django/db/utils.py\n@@ -89,6 +89,27 @@ class DatabaseErrorWrapper:\n                 if dj_exc_type not in (DataError, IntegrityError):\n                     self.wrapper.errors_occurred = True\n                 raise dj_exc_value.with_traceback(traceback) from exc_value\n+        if exc_type is None:\n+            return\n+        for dj_exc_type in (\n+            DataError,\n+            OperationalError,\n+            IntegrityError,\n+            InternalError,\n+            ProgrammingError,\n+            NotSupportedError,\n+            DatabaseError,\n+            InterfaceError,\n+            Error,\n+        ):\n+            db_exc_type = getattr(self.wrapper.Database, dj_exc_type.__name__)\n+            if issubclass(exc_type, db_exc_type):\n+                dj_exc_value = dj_exc_type(*exc_value.args)\n+                # Only set the 'errors_occurred' flag for errors that may make\n+                # the connection unusable.\n+                if dj_exc_type not in (DataError, IntegrityError):\n+                    self.wrapper.errors_occurred = True\n+                raise dj_exc_value.with_traceback(traceback) from exc_value\n \n     def __call__(self, func):\n         # Note that we are intentionally not using @wraps here for performance\n"
+  },
+  {
+    "instance_id": "django__django-15738",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-15781",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/core/management/base.py b/django/core/management/base.py\nindex d37d43d5c5..b3baca08fe 100644\n--- a/django/core/management/base.py\n+++ b/django/core/management/base.py\n@@ -196,7 +196,8 @@ class BaseCommand:\n     3. The ``execute()`` method attempts to carry out the command by\n        calling the ``handle()`` method with the parsed arguments; any\n        output produced by ``handle()`` will be printed to standard\n-       output and, if the command is intended to produce a block of\n+       output and\n+    \"\"\", if the command is intended to produce a block of\n        SQL statements, will be wrapped in ``BEGIN`` and ``COMMIT``.\n \n     4. If ``handle()`` or ``execute()`` raised any exception (e.g.\n"
+  },
+  {
+    "instance_id": "django__django-15789",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-15790",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/apps/config.py b/django/apps/config.py\nindex 28e50e5225..a1f5c957f4 100644\n--- a/django/apps/config.py\n+++ b/django/apps/config.py\n@@ -55,6 +55,24 @@ class AppConfig:\n         # None to prevent accidental access before import_models() runs.\n         self.models = None\n \n+        # Human-readable name for the application e.g. \"Admin\".\n+        if not hasattr(self, \"verbose_name\"):\n+            self.verbose_name = self.label.title()\n+\n+        # Filesystem path to the application directory e.g.\n+        # '/path/to/django/contrib/admin'.\n+        if not hasattr(self, \"path\"):\n+            self.path = self._path_from_module(app_module)\n+\n+        # Module containing models e.g. <module 'django.contrib.admin.models'\n+        # from 'django/contrib/admin/models.py'>. Set by import_models().\n+        # None if the application doesn't have a models module.\n+        self.models_module = None\n+\n+        # Mapping of lowercase model names to model classes. Initially set to\n+        # None to prevent accidental access before import_models() runs.\n+        self.models = None\n+\n     def __repr__(self):\n         return \"<%s: %s>\" % (self.__class__.__name__, self.label)\n"
+  },
+  {
+    "instance_id": "django__django-15814",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-15819",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-15851",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/backends/postgresql/client.py b/django/db/backends/postgresql/client.py\nindex 4c9bd63546..3b5ddafaca 100644\n--- a/django/db/backends/postgresql/client.py\n+++ b/django/db/backends/postgresql/client.py\n@@ -32,9 +32,9 @@ class DatabaseClient(BaseDatabaseClient):\n             args += [\"-h\", host]\n         if port:\n             args += [\"-p\", str(port)]\n+        args.extend(parameters)\n         if dbname:\n             args += [dbname]\n-        args.extend(parameters)\n \n         env = {}\n         if passwd:\n"
+  },
+  {
+    "instance_id": "django__django-15902",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/forms/formsets.py b/django/forms/formsets.py\nindex 3adbc6979a..a3bf3eff1c 100644\n--- a/django/forms/formsets.py\n+++ b/django/forms/formsets.py\n@@ -48,6 +48,9 @@ class ManagementForm(Form):\n         cleaned_data.setdefault(INITIAL_FORM_COUNT, 0)\n         return cleaned_data\n \n+    def template_name(self):\n+        return \"django/forms/formsets/default.html\"\n+\n \n class BaseFormSet(RenderableFormMixin):\n     \"\"\"\n"
+  },
+  {
+    "instance_id": "django__django-15996",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/contrib/admin/migrations/0001_initial.py b/django/contrib/admin/migrations/0001_initial.py\nindex d02e128497..22aa4b9903 100644\n--- a/django/contrib/admin/migrations/0001_initial.py\n+++ b/django/contrib/admin/migrations/0001_initial.py\n@@ -73,4 +73,49 @@ class Migration(migrations.Migration):\n                 (\"objects\", django.contrib.admin.models.LogEntryManager()),\n             ],\n         ),\n+    ]\n+                    models.TextField(null=True, verbose_name=\"object id\", blank=True),\n+                ),\n+                (\n+                    \"object_repr\",\n+                    models.CharField(max_length=200, verbose_name=\"object repr\"),\n+                ),\n+                (\n+                    \"action_flag\",\n+                    models.PositiveSmallIntegerField(verbose_name=\"action flag\"),\n+                ),\n+                (\n+                    \"change_message\",\n+                    models.TextField(verbose_name=\"change message\", blank=True),\n+                ),\n+                (\n+                    \"content_type\",\n+                    models.ForeignKey(\n+                        on_delete=models.SET_NULL,\n+                        blank=True,\n+                        null=True,\n+                        to=\"contenttypes.ContentType\",\n+                        verbose_name=\"content type\",\n+                    ),\n+                ),\n+                (\n+                    \"user\",\n+                    models.ForeignKey(\n+                        to=settings.AUTH_USER_MODEL,\n+                        on_delete=models.CASCADE,\n+                        verbose_name=\"user\",\n+                    ),\n+                ),\n+            ],\n+            options={\n+                \"ordering\": [\"-action_time\"],\n+                \"db_table\": \"django_admin_log\",\n+                \"verbose_name\": \"log entry\",\n+                \"verbose_name_plural\": \"log entries\",\n+            },\n+            bases=(models.Model,),\n+            managers=[\n+                (\"objects\", django.contrib.admin.models.LogEntryManager()),\n+            ],\n+        ),\n     ]\n"
+  },
+  {
+    "instance_id": "django__django-16041",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/forms/formsets.py b/django/forms/formsets.py\nindex 57676428ff..bc4b660f35 100644\n--- a/django/forms/formsets.py\n+++ b/django/forms/formsets.py\n@@ -260,7 +260,7 @@ class BaseFormSet(RenderableFormMixin):\n         form = self.form(\n             auto_id=self.auto_id,\n             prefix=self.add_prefix(\"__prefix__\"),\n-            empty_permitted=True,\n+            empty_permitted=False,  # Change empty_permitted to False\n             use_required_attribute=False,\n             **self.get_form_kwargs(None),\n             renderer=self.renderer,\n"
+  },
+  {
+    "instance_id": "django__django-16046",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-16139",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/contrib/auth/forms.py b/django/contrib/auth/forms.py\nindex b3cfc6723c..f6c4b7fc2f 100644\n--- a/django/contrib/auth/forms.py\n+++ b/django/contrib/auth/forms.py\n@@ -163,7 +163,7 @@ class UserChangeForm(forms.ModelForm):\n         super().__init__(*args, **kwargs)\n         password = self.fields.get(\"password\")\n         if password:\n-            password.help_text = password.help_text.format(\"../password/\")\n+            password.help_text = password.help_text.format(f\"../../{self.instance.pk}/password/\")\n         user_permissions = self.fields.get(\"user_permissions\")\n         if user_permissions:\n             user_permissions.queryset = user_permissions.queryset.select_related(\n"
+  },
+  {
+    "instance_id": "django__django-16229",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-16255",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-16379",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/core/cache/backends/filebased.py b/django/core/cache/backends/filebased.py\nindex 631da49444..215fefbcc0 100644\n--- a/django/core/cache/backends/filebased.py\n+++ b/django/core/cache/backends/filebased.py\n@@ -90,10 +90,11 @@ class FileBasedCache(BaseCache):\n \n     def has_key(self, key, version=None):\n         fname = self._key_to_file(key, version)\n-        if os.path.exists(fname):\n+        try:\n             with open(fname, \"rb\") as f:\n                 return not self._is_expired(f)\n-        return False\n+        except FileNotFoundError:\n+            return False\n \n     def _cull(self):\n         \"\"\"\n"
+  },
+  {
+    "instance_id": "django__django-16400",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/contrib/auth/management/__init__.py b/django/contrib/auth/management/__init__.py\nindex 0b5a982617..f4f19986e6 100644\n--- a/django/contrib/auth/management/__init__.py\n+++ b/django/contrib/auth/management/__init__.py\n@@ -37,6 +37,7 @@ def _get_builtin_permissions(opts):\n def create_permissions(\n     app_config,\n     verbosity=2,\n+    using=DEFAULT_DB_ALIAS,\n     interactive=True,\n     using=DEFAULT_DB_ALIAS,\n     apps=global_apps,\n"
+  },
+  {
+    "instance_id": "django__django-16408",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/sql/compiler.py b/django/db/models/sql/compiler.py\nindex 7c433b3f06..7b030263d0 100644\n--- a/django/db/models/sql/compiler.py\n+++ b/django/db/models/sql/compiler.py\n@@ -280,6 +280,12 @@ class SQLCompiler:\n \n             get_select_from_parent(klass_info)\n \n+            # Ensure that the related objects are correctly set\n+            for obj in self.query.model.objects.all():\n+                for field in self.query.model._meta.get_fields():\n+                    if field.is_relation and field.auto_created:\n+                        setattr(obj, field.name, None)\n+\n         ret = []\n         col_idx = 1\n         for col, alias in select:\n"
+  },
+  {
+    "instance_id": "django__django-16527",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/contrib/admin/templatetags/admin_modify.py b/django/contrib/admin/templatetags/admin_modify.py\nindex 9df4b7aadb..5b742af46a 100644\n--- a/django/contrib/admin/templatetags/admin_modify.py\n+++ b/django/contrib/admin/templatetags/admin_modify.py\n@@ -100,6 +100,7 @@ def submit_row(context):\n                 and context.get(\"show_delete\", True)\n             ),\n             \"show_save_as_new\": not is_popup\n+            and has_add_permission\n             and has_change_permission\n             and change\n             and save_as,\n"
+  },
+  {
+    "instance_id": "django__django-16595",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-16816",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/contrib/admin/checks.py b/django/contrib/admin/checks.py\nindex 0fefe65e48..cdeb1d4095 100644\n--- a/django/contrib/admin/checks.py\n+++ b/django/contrib/admin/checks.py\n@@ -924,7 +924,7 @@ class ModelAdminChecks(BaseModelAdminChecks):\n                     f\"The value of '{label}' must not be a many-to-many field or a \"\n                     f\"reverse foreign key.\",\n                     obj=obj.__class__,\n-                    id=\"admin.E109\",\n+                    id=\"admin.E108\",\n                 )\n             ]\n         return []\n"
+  },
+  {
+    "instance_id": "django__django-16820",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "django__django-16873",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/template/defaultfilters.py b/django/template/defaultfilters.py\nindex 03676533b7..71376953d2 100644\n--- a/django/template/defaultfilters.py\n+++ b/django/template/defaultfilters.py\n@@ -587,11 +587,14 @@ def join(value, arg, autoescape=True):\n     try:\n         if autoescape:\n             value = [conditional_escape(v) for v in value]\n-        data = conditional_escape(arg).join(value)\n+            arg = conditional_escape(arg)\n+        data = arg.join(value)\n     except TypeError:  # Fail silently if arg isn't iterable.\n         return value\n     return mark_safe(data)\n \n+***\n+\n \n @register.filter(is_safe=True)\n def last(value):\n"
+  },
+  {
+    "instance_id": "django__django-16910",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/migrations/autodetector.py b/django/db/migrations/autodetector.py\nindex 154ac44419..b11972cc8f 100644\n--- a/django/db/migrations/autodetector.py\n+++ b/django/db/migrations/autodetector.py\n@@ -49,6 +49,16 @@ class MigrationAutodetector:\n             changes = self._trim_to_apps(changes, trim_to_apps)\n         return changes\n \n+    def _trim_to_apps(self, changes, trim_to_apps):\n+        \"\"\"\n+        Helper method to trim changes to only include the specified apps.\n+        \"\"\"\n+        trimmed_changes = {}\n+        for app_label, migrations in changes.items():\n+            if app_label in trim_to_apps:\n+                trimmed_changes[app_label] = migrations\n+        return trimmed_changes\n+\n     def deep_deconstruct(self, obj):\n         \"\"\"\n         Recursive deconstruction for a field and its arguments.\n"
+  },
+  {
+    "instance_id": "django__django-17051",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/models/query.py b/django/db/models/query.py\nindex 5ac2407ea3..fa756c8c67 100644\n--- a/django/db/models/query.py\n+++ b/django/db/models/query.py\n@@ -305,6 +305,7 @@ class QuerySet(AltersData):\n         self._fields = None\n         self._defer_next_filter = False\n         self._deferred_filter = None\n+        self._returning_fields = None\n \n     @property\n     def query(self):\n@@ -314,6 +315,11 @@ class QuerySet(AltersData):\n             self._deferred_filter = None\n         return self._query\n \n+    def bulk_create(self, objs, batch_size=None, ignore_conflicts=False, update_conflicts=False, update_fields=None, unique_fields=None):\n+        if update_conflicts:\n+            self._returning_fields = [self.model._meta.pk.attname]\n+        return super().bulk_create(objs, batch_size, ignore_conflicts, update_conflicts, update_fields, unique_fields)\n+\n     @query.setter\n     def query(self, value):\n         if value.values_select:\n"
+  },
+  {
+    "instance_id": "django__django-17087",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/django/db/migrations/serializer.py b/django/db/migrations/serializer.py\nindex d88cda6e20..4d44095f6e 100644\n--- a/django/db/migrations/serializer.py\n+++ b/django/db/migrations/serializer.py\n@@ -393,6 +393,8 @@ def serializer_factory(value):\n     for type_, serializer_cls in Serializer._registry.items():\n         if isinstance(value, type_):\n             return serializer_cls(value)\n+    if callable(value):\n+        return FunctionTypeSerializer(value)\n     raise ValueError(\n         \"Cannot serialize: %r\\nThere are some values Django cannot serialize into \"\n         \"migration files.\\nFor more, see https://docs.djangoproject.com/en/%s/\"\n"
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-18869",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/lib/matplotlib/__init__.py b/lib/matplotlib/__init__.py\nindex b657a35cf7..c1a98f5355 100644\n--- a/lib/matplotlib/__init__.py\n+++ b/lib/matplotlib/__init__.py\n@@ -148,6 +148,8 @@ def __getattr__(name):\n         else:  # Get the version from the _version.py setuptools_scm file.\n             __version__ = _version.version\n         return __version__\n+    elif name == \"version_info\":\n+        return parse_version(__version__).version\n     raise AttributeError(f\"module {__name__!r} has no attribute {name!r}\")\n"
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-22711",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-22835",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-23299",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-23314",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-23476",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/lib/matplotlib/__init__.py b/lib/matplotlib/__init__.py\nindex 528be266ff..d1c0cdbc24 100644\n--- a/lib/matplotlib/__init__.py\n+++ b/lib/matplotlib/__init__.py\n@@ -99,6 +99,7 @@ import os\n from pathlib import Path\n import pprint\n import re\n+import platform\n import shutil\n import subprocess\n import sys\n"
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-23562",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/lib/matplotlib/__init__.py b/lib/matplotlib/__init__.py\nindex 50033b212a..ded442b634 100644\n--- a/lib/matplotlib/__init__.py\n+++ b/lib/matplotlib/__init__.py\n@@ -1322,6 +1322,7 @@ def _add_data_doc(docstring, replace_names):\n     if (docstring is None\n             or replace_names is not None and len(replace_names) == 0):\n         return docstring\n+        return docstring\n     docstring = inspect.cleandoc(docstring)\n"
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-23563",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/lib/matplotlib/__init__.py b/lib/matplotlib/__init__.py\nindex 50033b212a..7aac164a5b 100644\n--- a/lib/matplotlib/__init__.py\n+++ b/lib/matplotlib/__init__.py\n@@ -1298,7 +1298,7 @@ def _label_from_arg(y, default_name):\n     except AttributeError:\n         if isinstance(default_name, str):\n             return default_name\n-    return None\n+        return None\n \n \n def _add_data_doc(docstring, replace_names):\n"
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-23913",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-23964",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-23987",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-24149",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-24265",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-24334",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/lib/matplotlib/axes/_base.py b/lib/matplotlib/axes/_base.py\nindex 015fd32945..f603f4eadb 100644\n--- a/lib/matplotlib/axes/_base.py\n+++ b/lib/matplotlib/axes/_base.py\n@@ -3764,6 +3764,8 @@ class _AxesBase(martist.Artist):\n             The label text.\n \n         labelpad : float, default: :rc:`axes.labelpad`\n+        \"\"\"\n+        self.yaxis.set_label_text(ylabel, fontdict=fontdict, labelpad=labelpad, loc=loc, **kwargs)\n             Spacing in points from the Axes bounding box including ticks\n             and tick labels.  If None, the previous value is left as is.\n"
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-24970",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/lib/matplotlib/__init__.py b/lib/matplotlib/__init__.py\nindex b279c46516..d69a3ab73d 100644\n--- a/lib/matplotlib/__init__.py\n+++ b/lib/matplotlib/__init__.py\n@@ -117,6 +117,7 @@ import os\n from pathlib import Path\n import pprint\n import re\n+import numpy as np\n import shutil\n import subprocess\n import sys\n"
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-25079",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-25311",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/lib/matplotlib/_api/__init__.py b/lib/matplotlib/_api/__init__.py\nindex 0288ff69c2..ba96c8177d 100644\n--- a/lib/matplotlib/_api/__init__.py\n+++ b/lib/matplotlib/_api/__init__.py\n@@ -91,11 +91,7 @@ def check_isinstance(_types, **kwargs):\n                 names.remove(\"None\")\n                 names.append(\"None\")\n             raise TypeError(\n-                \"{!r} must be an instance of {}, not a {}\".format(\n-                    k,\n-                    \", \".join(names[:-1]) + \" or \" + names[-1]\n-                    if len(names) > 1 else names[0],\n-                    type_name(type(v))))\n+                f\"{k!r} must be an instance of {', '.join(names[:-1]) + ' or ' + names[-1] if len(names) > 1 else names[0]}, not a {type_name(type(v))}\")\n \n \n def check_in_list(_values, *, _print_supported_values=True, **kwargs):\n"
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-25332",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/lib/matplotlib/_api/__init__.py b/lib/matplotlib/_api/__init__.py\nindex 0288ff69c2..ba96c8177d 100644\n--- a/lib/matplotlib/_api/__init__.py\n+++ b/lib/matplotlib/_api/__init__.py\n@@ -91,11 +91,7 @@ def check_isinstance(_types, **kwargs):\n                 names.remove(\"None\")\n                 names.append(\"None\")\n             raise TypeError(\n-                \"{!r} must be an instance of {}, not a {}\".format(\n-                    k,\n-                    \", \".join(names[:-1]) + \" or \" + names[-1]\n-                    if len(names) > 1 else names[0],\n-                    type_name(type(v))))\n+                f\"{k!r} must be an instance of {', '.join(names[:-1]) + ' or ' + names[-1] if len(names) > 1 else names[0]}, not a {type_name(type(v))}\")\n \n \n def check_in_list(_values, *, _print_supported_values=True, **kwargs):\n"
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-25433",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/lib/matplotlib/__init__.py b/lib/matplotlib/__init__.py\nindex 53a3ab0398..be0d79a502 100644\n--- a/lib/matplotlib/__init__.py\n+++ b/lib/matplotlib/__init__.py\n@@ -101,7 +101,7 @@ developed and maintained by a host of others.\n Occasionally the internal documentation (python docstrings) will refer\n to MATLAB®, a registered trademark of The MathWorks, Inc.\n \n-\"\"\"\n+For more information, please visit the official Matplotlib website: https://matplotlib.org/\n \n import atexit\n from collections import namedtuple\n"
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-25442",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/lib/matplotlib/__init__.py b/lib/matplotlib/__init__.py\nindex 53a3ab0398..ba5f9bbdce 100644\n--- a/lib/matplotlib/__init__.py\n+++ b/lib/matplotlib/__init__.py\n@@ -1298,7 +1298,7 @@ def _label_from_arg(y, default_name):\n     except AttributeError:\n         if isinstance(default_name, str):\n             return default_name\n-    return None\n+        return None\n \n \n def _add_data_doc(docstring, replace_names):\n"
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-25498",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-26011",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "matplotlib__matplotlib-26020",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "mwaskom__seaborn-2848",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/seaborn/_oldcore.py b/seaborn/_oldcore.py\nindex c9218c1f..26d13208 100644\n--- a/seaborn/_oldcore.py\n+++ b/seaborn/_oldcore.py\n@@ -154,7 +154,7 @@ class HueMapping(SemanticMapping):\n             try:\n                 normed = self.norm(key)\n             except TypeError as err:\n-                if np.isnan(key):\n+                if isinstance(key, (float, int)) and np.isnan(key):\n                     value = (0, 0, 0, 0)\n                 else:\n                     raise err\n"
+  },
+  {
+    "instance_id": "mwaskom__seaborn-3010",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "mwaskom__seaborn-3190",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/seaborn/_core/scales.py b/seaborn/_core/scales.py\nindex 6c9ecbc9..891f670f 100644\n--- a/seaborn/_core/scales.py\n+++ b/seaborn/_core/scales.py\n@@ -315,6 +315,46 @@ class Discrete(Scale):\n \n @dataclass\n class ContinuousBase(Scale):\n+    def _setup(\n+            self, data: Series, prop: Property, axis: Axis | None = None,\n+    ) -> Scale:\n+        # Input checks\n+        if locator is not None and not isinstance(locator, Locator):\n+            raise TypeError(\n+                f\"Tick locator must be an instance of {Locator!r}, \"\n+                f\"not {type(locator)!r}.\"\n+            )\n+        log_base, symlog_thresh = self._parse_for_log_params(self.trans)\n+        if log_base or symlog_thresh:\n+            if count is not None and between is None:\n+                raise RuntimeError(\"`count` requires `between` with log transform.\")\n+            if every is not None:\n+                raise RuntimeError(\"`every` not supported with log transform.\")\n+\n+        new = copy(self)\n+        new._tick_params = {\n+            \"locator\": locator,\n+            \"at\": at,\n+            \"upto\": upto,\n+            \"count\": count,\n+            \"every\": every,\n+            \"between\": between,\n+            \"minor\": minor,\n+        }\n+        return new\n+\n+    def label(\n+        self,\n+        formatter: Formatter | None = None, like: str | None = None, base: int | None = None, unit: str | None = None,\n+    ) -> Scale:\n+        new = copy(self)\n+        new._label_params = {\n+            \"formatter\": formatter,\n+            \"like\": like,\n+            \"base\": base,\n+            \"unit\": unit,\n+        }\n+        return new\n \n     values: tuple | str | None = None\n     norm: tuple | None = None\n"
+  },
+  {
+    "instance_id": "mwaskom__seaborn-3407",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pallets__flask-4045",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pallets__flask-4992",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pallets__flask-5063",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/src/flask/cli.py b/src/flask/cli.py\nindex 37a15ff2..ce5737e3 100644\n--- a/src/flask/cli.py\n+++ b/src/flask/cli.py\n@@ -999,6 +999,17 @@ def shell_command() -> None:\n @click.option(\"--all-methods\", is_flag=True, help=\"Show HEAD and OPTIONS methods.\")\n @with_appcontext\n def routes_command(sort: str, all_methods: bool) -> None:\n+    \"\"\"Show the routes for the app.\"\"\"\n+    from . import Flask\n+\n+    app = _load_app()\n+    with app.app_context():\n+        table = []\n+        for rule in app.url_map.iter_rules():\n+            methods = \", \".join(sorted(rule.methods))\n+            domain = rule.subdomain if rule.subdomain else app.config.get('SERVER_NAME', '')\n+            table.append((domain, rule.endpoint, methods, rule.rule))\n+        print_table([\"Domain\", \"Endpoint\", \"Methods\", \"Rule\"], table, sort=sort)\n     \"\"\"Show all registered routes with endpoints and methods.\"\"\"\n \n     rules = list(current_app.url_map.iter_rules())\n"
+  },
+  {
+    "instance_id": "psf__requests-1963",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "psf__requests-2148",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/requests/exceptions.py b/requests/exceptions.py\nindex a4ee9d63..8faa0d16 100644\n--- a/requests/exceptions.py\n+++ b/requests/exceptions.py\n@@ -33,6 +33,8 @@ class HTTPError(RequestException):\n \n class ConnectionError(RequestException):\n     \"\"\"A Connection error occurred.\"\"\"\n+    def __init__(self, *args, **kwargs):\n+        super(ConnectionError, self).__init__(*args, **kwargs)\n \n \n class ProxyError(ConnectionError):\n"
+  },
+  {
+    "instance_id": "psf__requests-2317",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/requests/sessions.py b/requests/sessions.py\nindex d701ff2e..c23e376b 100644\n--- a/requests/sessions.py\n+++ b/requests/sessions.py\n@@ -425,7 +425,7 @@ class Session(SessionRedirectMixin):\n             If Tuple, ('cert', 'key') pair.\n         \"\"\"\n \n-        method = builtin_str(method)\n+        method = method.decode('utf-8') if isinstance(method, bytes) else builtin_str(method)\n \n         # Create the Request.\n         req = Request(\n"
+  },
+  {
+    "instance_id": "psf__requests-2674",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/requests/adapters.py b/requests/adapters.py\nindex 841cbbfe..0c67ac73 100644\n--- a/requests/adapters.py\n+++ b/requests/adapters.py\n@@ -27,6 +27,8 @@ from .packages.urllib3.exceptions import ProtocolError\n from .packages.urllib3.exceptions import ReadTimeoutError\n from .packages.urllib3.exceptions import SSLError as _SSLError\n from .packages.urllib3.exceptions import ResponseError\n+from .packages.urllib3.exceptions import DecodeError\n+from .packages.urllib3.exceptions import TimeoutError\n from .cookies import extract_cookies_to_jar\n from .exceptions import (ConnectionError, ConnectTimeout, ReadTimeout, SSLError,\n                          ProxyError, RetryError)\n"
+  },
+  {
+    "instance_id": "psf__requests-3362",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "psf__requests-863",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/requests/models.py b/requests/models.py\nindex d8456375..aa98e367 100644\n--- a/requests/models.py\n+++ b/requests/models.py\n@@ -149,7 +149,11 @@ class Request(object):\n         hooks = hooks or {}\n \n         for (k, v) in list(hooks.items()):\n-            self.register_hook(event=k, hook=v)\n+            if isinstance(v, list):\n+                for hook in v:\n+                    self.register_hook(event=k, hook=hook)\n+            else:\n+                self.register_hook(event=k, hook=v)\n \n         #: Session.\n         self.session = session\n"
+  },
+  {
+    "instance_id": "pydata__xarray-3364",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pydata__xarray-4094",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pydata__xarray-4248",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pydata__xarray-4493",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pydata__xarray-5131",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/conftest.py b/conftest.py\nindex 862a1a1d..e667ca5d 100644\n--- a/conftest.py\n+++ b/conftest.py\n@@ -11,6 +11,7 @@ def pytest_addoption(parser):\n         action=\"store_true\",\n         help=\"runs tests requiring a network connection\",\n     )\n+    parser.addoption(\"--no-trailing-whitespace\", action=\"store_true\", help=\"disables trailing whitespace in DatasetGroupBy representation\")\n \n \n def pytest_runtest_setup(item):\n"
+  },
+  {
+    "instance_id": "pylint-dev__pylint-5859",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pylint-dev__pylint-6506",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/pylint/__init__.py b/pylint/__init__.py\nindex 3aa4b7f9d..188bcae03 100644\n--- a/pylint/__init__.py\n+++ b/pylint/__init__.py\n@@ -25,6 +25,10 @@ def run_pylint(argv: Sequence[str] | None = None) -> None:\n         PylintRun(argv or sys.argv[1:])\n     except KeyboardInterrupt:\n         sys.exit(1)\n+    except pylint.config.exceptions._UnrecognizedOptionError as e:\n+        print(f\"usage: pylint [options] [files ...]\")\n+        print(f\"pylint: error: unrecognized arguments: {e.options}\")\n+        sys.exit(1)\n \n \n def run_epylint(argv: Sequence[str] | None = None) -> NoReturn:\n"
+  },
+  {
+    "instance_id": "pylint-dev__pylint-7080",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pylint-dev__pylint-7114",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pylint-dev__pylint-7228",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pylint-dev__pylint-7993",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pytest-dev__pytest-11143",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pytest-dev__pytest-11148",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pytest-dev__pytest-5103",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pytest-dev__pytest-5221",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/src/_pytest/assertion/rewrite.py b/src/_pytest/assertion/rewrite.py\nindex 24d96b722..cd8b138e7 100644\n--- a/src/_pytest/assertion/rewrite.py\n+++ b/src/_pytest/assertion/rewrite.py\n@@ -454,6 +454,13 @@ def _read_pyc(source, pyc, trace=lambda x: None):\n             return None\n         try:\n             co = marshal.load(fp)\n+            return co\n+        except EOFError:\n+            trace(\"_read_pyc(%s): EOFError while loading pyc\" % source)\n+            return None\n+        except marshal.Error:\n+            trace(\"_read_pyc(%s): marshal.Error while loading pyc\" % source)\n+            return None\n         except Exception as e:\n             trace(\"_read_pyc(%s): marshal.load error %s\" % (source, e))\n             return None\n"
+  },
+  {
+    "instance_id": "pytest-dev__pytest-5227",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/src/_pytest/_code/source.py b/src/_pytest/_code/source.py\nindex 39701a39b..d00d7f28d 100644\n--- a/src/_pytest/_code/source.py\n+++ b/src/_pytest/_code/source.py\n@@ -297,6 +297,9 @@ def getstatementrange_ast(lineno, source, assertion=False, astnode=None):\n \n     start, end = get_statement_startend2(lineno, astnode)\n     # we need to correct the end:\n+    if end is not None:\n+        end += 1\n+    return start, end\n     # - ast-parsing strips comments\n     # - there might be empty lines\n     # - we might have lesser indented code blocks at the end\n"
+  },
+  {
+    "instance_id": "pytest-dev__pytest-5413",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pytest-dev__pytest-5495",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pytest-dev__pytest-5692",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pytest-dev__pytest-6116",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pytest-dev__pytest-7168",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pytest-dev__pytest-7220",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pytest-dev__pytest-7373",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pytest-dev__pytest-7432",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/src/_pytest/skipping.py b/src/_pytest/skipping.py\nindex 7bd975e5a..31871bfe0 100644\n--- a/src/_pytest/skipping.py\n+++ b/src/_pytest/skipping.py\n@@ -271,7 +271,8 @@ def pytest_runtest_makereport(item: Item, call: CallInfo[None]):\n             rep.longrepr = \"Unexpected success\"\n         rep.outcome = \"failed\"\n     elif item.config.option.runxfail:\n-        pass  # don't interfere\n+        if rep.skipped:\n+            rep.longrepr = rep.longrepr.replace(\"src/_pytest/skipping.py\", item.location[0])\n     elif call.excinfo and isinstance(call.excinfo.value, xfail.Exception):\n         assert call.excinfo.value.msg is not None\n         rep.wasxfail = \"reason: \" + call.excinfo.value.msg\n"
+  },
+  {
+    "instance_id": "pytest-dev__pytest-7490",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pytest-dev__pytest-8365",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "pytest-dev__pytest-8906",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/src/_pytest/assertion/util.py b/src/_pytest/assertion/util.py\nindex d29a2a010..2a77cc92b 100644\n--- a/src/_pytest/assertion/util.py\n+++ b/src/_pytest/assertion/util.py\n@@ -134,6 +134,11 @@ def isiterable(obj: Any) -> bool:\n     except TypeError:\n         return False\n \n+def skip_module(reason: str) -> None:\n+    import sys\n+    if sys.version_info < (3, 8):\n+        skip(msg=reason, allow_module_level=True)\n+\n \n def assertrepr_compare(config, op: str, left: Any, right: Any) -> Optional[List[str]]:\n     \"\"\"Return specialised explanations for some operators/operands.\"\"\"\n"
+  },
+  {
+    "instance_id": "pytest-dev__pytest-9359",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-10297",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sklearn/base.py b/sklearn/base.py\nindex 6f59cea3c7..a34328a08d 100644\n--- a/sklearn/base.py\n+++ b/sklearn/base.py\n@@ -248,6 +248,13 @@ class BaseEstimator(object):\n         if not params:\n             # Simple optimization to gain speed (inspect is slow)\n             return self\n+\n+        for key, value in params.items():\n+            if hasattr(self, key):\n+                setattr(self, key, value)\n+            else:\n+                raise ValueError(f\"Invalid parameter {key} for estimator {self.__class__.__name__}\")\n+        return self\n         valid_params = self.get_params(deep=True)\n \n         nested_params = defaultdict(dict)  # grouped by prefix\n"
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-10508",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-10949",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sklearn/utils/validation.py b/sklearn/utils/validation.py\nindex fe1f7236ec..be7781ea6f 100644\n--- a/sklearn/utils/validation.py\n+++ b/sklearn/utils/validation.py\n@@ -354,7 +354,7 @@ def _ensure_no_complex_data(array):\n def check_array(array, accept_sparse=False, accept_large_sparse=True,\n                 dtype=\"numeric\", order=None, copy=False, force_all_finite=True,\n                 ensure_2d=True, allow_nd=False, ensure_min_samples=1,\n-                ensure_min_features=1, warn_on_dtype=False, estimator=None):\n+                ensure_min_features=1, warn_on_dtype=True, estimator=None):\n \n     \"\"\"Input validation on an array, list, sparse matrix or similar.\n"
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-11040",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sklearn/_build_utils/__init__.py b/sklearn/_build_utils/__init__.py\nindex 0ed4968a1a..49b72bc3a5 100644\n--- a/sklearn/_build_utils/__init__.py\n+++ b/sklearn/_build_utils/__init__.py\n@@ -82,3 +82,15 @@ def maybe_cythonize_extensions(top_path, config):\n             raise\n \n         config.ext_modules = cythonize(config.ext_modules)\n+        try:\n+            import Cython\n+            if LooseVersion(Cython.__version__) < CYTHON_MIN_VERSION:\n+                message += ' Your version of Cython was {0}.'.format(\n+                    Cython.__version__)\n+                raise ValueError(message)\n+            from Cython.Build import cythonize\n+        except ImportError as exc:\n+            exc.args += (message,)\n+            raise\n+\n+        config.ext_modules = cythonize(config.ext_modules)\n"
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-11281",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-12471",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-13142",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-13241",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sklearn/cluster/affinity_propagation_.py b/sklearn/cluster/affinity_propagation_.py\nindex 2e646746ee..ed15a42077 100644\n--- a/sklearn/cluster/affinity_propagation_.py\n+++ b/sklearn/cluster/affinity_propagation_.py\n@@ -25,7 +25,7 @@ def _equal_similarities_and_preferences(S, preference):\n         mask = np.ones(S.shape, dtype=bool)\n         np.fill_diagonal(mask, 0)\n \n-        return np.all(S[mask].flat == S[mask].flat[0])\n+        return np.allclose(S[mask].flat, S[mask].flat[0])\n \n     return all_equal_preferences() and all_equal_similarities()\n"
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-13439",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sklearn/pipeline.py b/sklearn/pipeline.py\nindex 7eaf9a46f0..6e62381760 100644\n--- a/sklearn/pipeline.py\n+++ b/sklearn/pipeline.py\n@@ -111,25 +111,7 @@ class Pipeline(_BaseComposition):\n            True, False,  True,  True, False,  True, False,  True,  True,\n            False, False])\n     >>> # Indexing can also be used to extract a sub-pipeline.\n-    >>> sub_pipeline = anova_svm[:1]\n-    >>> sub_pipeline  # doctest: +ELLIPSIS +NORMALIZE_WHITESPACE\n-    Pipeline(memory=None, steps=[('anova', ...)])\n-    >>> coef = anova_svm[-1].coef_\n-    >>> anova_svm['svc'] is anova_svm[-1]\n-    True\n-    >>> coef.shape\n-    (1, 10)\n-    >>> sub_pipeline.inverse_transform(coef).shape\n-    (1, 20)\n-    \"\"\"\n-\n-    # BaseEstimator interface\n-    _required_parameters = ['steps']\n-\n-    def __init__(self, steps, memory=None):\n-        self.steps = steps\n-        self._validate_steps()\n-        self.memory = memory\n+    >>> sub_pipeline = an\n \n     def get_params(self, deep=True):\n         \"\"\"Get parameters for this estimator.\n"
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-13496",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-13497",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-13584",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-13779",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sklearn/base.py b/sklearn/base.py\nindex c4eb14aeca..2d19b82765 100644\n--- a/sklearn/base.py\n+++ b/sklearn/base.py\n@@ -354,6 +354,10 @@ class ClassifierMixin:\n \n         \"\"\"\n         from .metrics import accuracy_score\n+        if sample_weight is not None:\n+            sample_weight = np.asarray(sample_weight)\n+            if sample_weight.ndim != 1 or sample_weight.shape[0] != X.shape[0]:\n+                raise ValueError(\"sample_weight must be 1D and the same length as X\")\n         return accuracy_score(y, self.predict(X), sample_weight=sample_weight)\n"
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-14087",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-14092",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-14894",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-14983",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-15512",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-15535",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-25500",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-25570",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sklearn/compose/_column_transformer.py b/sklearn/compose/_column_transformer.py\nindex a261451177..bde4a0f5e8 100644\n--- a/sklearn/compose/_column_transformer.py\n+++ b/sklearn/compose/_column_transformer.py\n@@ -531,6 +531,14 @@ class ColumnTransformer(TransformerMixin, _BaseComposition):\n         )\n \n     def _add_prefix_for_feature_names_out(self, transformer_with_feature_names_out):\n+    prefixed_feature_names = []\n+    for name, transformer, feature_names in transformer_with_feature_names_out:\n+        if feature_names is not None:\n+            if self.verbose_feature_names_out:\n+                prefixed_feature_names.extend([f\"{name}__{feature_name}\" for feature_name in feature_names])\n+            else:\n+                prefixed_feature_names.extend(feature_names)\n+    return prefixed_feature_names\n         \"\"\"Add prefix for feature names out that includes the transformer names.\n \n         Parameters\n"
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-25638",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "scikit-learn__scikit-learn-25747",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sphinx-doc__sphinx-10325",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sphinx/addnodes.py b/sphinx/addnodes.py\nindex bf74bd1aa..65504b956 100644\n--- a/sphinx/addnodes.py\n+++ b/sphinx/addnodes.py\n@@ -72,6 +72,30 @@ class translatable(nodes.Node):\n         \"\"\"\n         raise NotImplementedError\n \n+    1. Preserve original translatable messages\n+    2. Apply translated messages from message catalog\n+    3. Extract preserved messages (for gettext builder)\n+\n+    The translatable nodes MUST preserve original messages.\n+    And these messages should not be overridden at applying step.\n+    Because they are used at final step; extraction.\n+    \"\"\"\n+\n+    def preserve_original_messages(self) -> None:\n+        \"\"\"Preserve original translatable messages.\"\"\"\n+        raise NotImplementedError\n+\n+    def apply_translated_message(self, original_message: str, translated_message: str) -> None:\n+        \"\"\"Apply translated message.\"\"\"\n+        raise NotImplementedError\n+\n+    def extract_original_messages(self) -> Sequence[str]:\n+        \"\"\"Extract translation messages.\n+\n+        :returns: list of extracted messages or messages generator\n+        \"\"\"\n+        raise NotImplementedError\n+\n \n class not_smartquotable:\n     \"\"\"A node which does not support smart-quotes.\"\"\"\n"
+  },
+  {
+    "instance_id": "sphinx-doc__sphinx-10451",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sphinx/addnodes.py b/sphinx/addnodes.py\nindex 0a4a079da..717fe10c8 100644\n--- a/sphinx/addnodes.py\n+++ b/sphinx/addnodes.py\n@@ -128,7 +128,8 @@ class _desc_classes_injector(nodes.Element, not_smartquotable):\n \n     def __init__(self, *args: Any, **kwargs: Any) -> None:\n         super().__init__(*args, **kwargs)\n-        self['classes'].extend(self.classes)\n+        if 'classes' in self:\n+            self['classes'].extend(self.classes)\n \n \n # Top-level nodes\n"
+  },
+  {
+    "instance_id": "sphinx-doc__sphinx-11445",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sphinx-doc__sphinx-7686",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sphinx-doc__sphinx-7738",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sphinx-doc__sphinx-7975",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sphinx-doc__sphinx-8273",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sphinx-doc__sphinx-8282",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sphinx-doc__sphinx-8435",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sphinx-doc__sphinx-8474",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sphinx-doc__sphinx-8506",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sphinx/cmd/quickstart.py b/sphinx/cmd/quickstart.py\nindex f9def2656..41593b7d7 100644\n--- a/sphinx/cmd/quickstart.py\n+++ b/sphinx/cmd/quickstart.py\n@@ -86,7 +86,10 @@ def term_input(prompt: str) -> str:\n         print(prompt, end='')\n         return input('')\n     else:\n-        return input(prompt)\n+        try:\n+            return input(prompt)\n+        except EOFError:\n+            return \"\"\n \n \n class ValidationError(Exception):\n"
+  },
+  {
+    "instance_id": "sphinx-doc__sphinx-8595",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sphinx-doc__sphinx-8627",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sphinx/ext/autosectionlabel.py b/sphinx/ext/autosectionlabel.py\nindex 73a460117..34de21c86 100644\n--- a/sphinx/ext/autosectionlabel.py\n+++ b/sphinx/ext/autosectionlabel.py\n@@ -51,6 +51,12 @@ def register_sections_as_label(app: Sphinx, document: Node) -> None:\n             logger.warning(__('duplicate label %s, other instance in %s'),\n                            name, app.env.doc2path(domain.labels[name][0]),\n                            location=node, type='autosectionlabel', subtype=docname)\n+        else:\n+            domain.anonlabels[name] = docname, labelid\n+            domain.labels[name] = docname, labelid, sectname\n+            logger.warning(__('duplicate label %s, other instance in %s'),\n+                           name, app.env.doc2path(domain.labels[name][0]),\n+                           location=node, type='autosectionlabel', subtype=docname)\n \n         domain.anonlabels[name] = docname, labelid\n         domain.labels[name] = docname, labelid, sectname\n"
+  },
+  {
+    "instance_id": "sphinx-doc__sphinx-8713",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sphinx/ext/napoleon/docstring.py b/sphinx/ext/napoleon/docstring.py\nindex 755088ca5..71bc57829 100644\n--- a/sphinx/ext/napoleon/docstring.py\n+++ b/sphinx/ext/napoleon/docstring.py\n@@ -682,6 +682,11 @@ class GoogleDocstring:\n         return self._parse_generic_section(_('Notes'), use_admonition)\n \n     def _parse_other_parameters_section(self, section: str) -> List[str]:\n+        # type: (unicode) -> List[unicode]\n+        if self._config.napoleon_use_param:\n+            return self._format_docutils_params(self._consume_to_end())\n+        else:\n+            return self._format_fields(_('Other Parameters'), self._consume_to_end())\n         return self._format_fields(_('Other Parameters'), self._consume_fields())\n \n     def _parse_parameters_section(self, section: str) -> List[str]:\n"
+  },
+  {
+    "instance_id": "sphinx-doc__sphinx-8721",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sphinx-doc__sphinx-8801",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-11400",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-11870",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/functions/elementary/trigonometric.py b/sympy/functions/elementary/trigonometric.py\nindex b2a3f3d6a7..4547a4160c 100644\n--- a/sympy/functions/elementary/trigonometric.py\n+++ b/sympy/functions/elementary/trigonometric.py\n@@ -1763,6 +1763,7 @@ class sinc(TrigonometricFunction):\n     * Series Expansion\n \n     >>> sinc(x).series()\n+    1 - x**2/6 + x**4/120 - x**6/5040 + O(x**8)\n     1 - x**2/6 + x**4/120 + O(x**6)\n \n     * As zero'th order spherical Bessel Function\n"
+  },
+  {
+    "instance_id": "sympy__sympy-11897",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-12171",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/core/function.py b/sympy/core/function.py\nindex c730d8c9c8..6e5a1a689b 100644\n--- a/sympy/core/function.py\n+++ b/sympy/core/function.py\n@@ -889,6 +889,9 @@ class Derivative(Expr):\n         30\n \n     Ordering of variables:\n+    \"\"\"\n+    def _print_Derivative(self, expr):\n+        return \"D[%s]\" % (self.stringify(expr.args, \", \"))\n \n     If evaluate is set to True and the expression can not be evaluated, the\n     list of differentiation symbols will be sorted, that is, the expression is\n"
+  },
+  {
+    "instance_id": "sympy__sympy-12236",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-12419",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-12454",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/matrices/matrices.py b/sympy/matrices/matrices.py\nindex 90ea232faf..f218409904 100644\n--- a/sympy/matrices/matrices.py\n+++ b/sympy/matrices/matrices.py\n@@ -1112,7 +1112,7 @@ def is_upper(self):\n         \"\"\"\n         return all(self[i, j].is_zero\n                    for i in range(1, self.rows)\n-                   for j in range(i))\n+                   for j in range(i) if j < self.cols)\n \n     @property\n     def is_zero(self):\n"
+  },
+  {
+    "instance_id": "sympy__sympy-12481",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-13031",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-13043",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/integrals/intpoly.py b/sympy/integrals/intpoly.py\nindex fc72bd206f..ed66fda2e9 100644\n--- a/sympy/integrals/intpoly.py\n+++ b/sympy/integrals/intpoly.py\n@@ -560,6 +560,9 @@ def decompose(expr, separate=False):\n     \"\"\"\n     expr = S(expr)\n     poly_dict = {}\n+    if separate:\n+        return sorted(poly_dict.values(), key=lambda monom: monom.as_ordered_terms())\n+    return poly_dict\n \n     if isinstance(expr, Expr) and not expr.is_number:\n         if expr.is_Symbol:\n"
+  },
+  {
+    "instance_id": "sympy__sympy-13146",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/__init__.py b/sympy/__init__.py\nindex 2db99955c7..540b838534 100644\n--- a/sympy/__init__.py\n+++ b/sympy/__init__.py\n@@ -63,7 +63,7 @@ def __sympy_debug():\n from .functions import *\n from .ntheory import *\n from .concrete import *\n-from .simplify import *\n+from .simplify import simplify\n from .sets import *\n from .solvers import *\n from .matrices import *\n"
+  },
+  {
+    "instance_id": "sympy__sympy-13177",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-13437",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-13471",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-13480",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-13647",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-13773",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-13895",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-13915",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/__init__.py b/sympy/__init__.py\nindex 21936f61b9..6243d85da3 100644\n--- a/sympy/__init__.py\n+++ b/sympy/__init__.py\n@@ -8,7 +8,6 @@\n See the webpage for more information and documentation:\n \n     http://sympy.org\n-\n \"\"\"\n"
+  },
+  {
+    "instance_id": "sympy__sympy-13971",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-14024",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-14308",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/calculus/util.py b/sympy/calculus/util.py\nindex 3019a2a8ca..2f575682c0 100644\n--- a/sympy/calculus/util.py\n+++ b/sympy/calculus/util.py\n@@ -72,7 +72,7 @@ def continuous_domain(f, symbol, domain):\n                         solveset(denom(together(f)), symbol, domain)\n                     break\n             else:\n-                sings = Intersection(solveset(1/f, symbol), domain) + \\\n+                sings = Intersection(solveset(1/f, symbol, domain), domain) + \\\n                     solveset(denom(together(f)), symbol, domain)\n \n     except NotImplementedError:\n"
+  },
+  {
+    "instance_id": "sympy__sympy-14317",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-14396",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-14774",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-14817",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-15011",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-15308",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/matrices/expressions/trace.py b/sympy/matrices/expressions/trace.py\nindex 4a07d6a1f4..cca60ead14 100644\n--- a/sympy/matrices/expressions/trace.py\n+++ b/sympy/matrices/expressions/trace.py\n@@ -72,6 +72,9 @@ def _eval_rewrite_as_Sum(self, **kwargs):\n         i = Dummy('i')\n         return Sum(self.arg[i, i], (i, 0, self.arg.rows-1)).doit()\n \n+    def _eval_latex(self, printer):\n+        return r'\\text{tr}\\left(' + printer._print(self.arg) + r'\\right)'\n+\n \n def trace(expr):\n     \"\"\" Trace of a Matrix.  Sum of the diagonal elements\n"
+  },
+  {
+    "instance_id": "sympy__sympy-15345",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/utilities/benchmarking.py b/sympy/utilities/benchmarking.py\nindex 342d698927..f2ab750188 100644\n--- a/sympy/utilities/benchmarking.py\n+++ b/sympy/utilities/benchmarking.py\n@@ -67,7 +67,7 @@ def __init__(self, *args, **kw):\n     def execute(self, target, *args):\n         # get func source without first 'def func(...):' line\n         src = getsource(target)\n-        src = '\\n'.join( src.splitlines()[1:] )\n+        src = '\\n'.join(src.splitlines()[1:])\n \n         # extract benchmark title\n         if target.func_doc is not None:\n"
+  },
+  {
+    "instance_id": "sympy__sympy-15346",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-15609",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-15678",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-16106",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-16281",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-16503",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/printing/pretty/pretty.py b/sympy/printing/pretty/pretty.py\nindex 7a3de33522..2a36f14c7c 100644\n--- a/sympy/printing/pretty/pretty.py\n+++ b/sympy/printing/pretty/pretty.py\n@@ -533,6 +533,11 @@ def _print_Product(self, expr):\n         return pretty_func\n \n     def _print_Sum(self, expr):\n+    def asum(hrequired, lower, upper, use_ascii):\n+        def adjust(s, wid=None, how='<^>'):\n+            if wid is None:\n+                wid = max(len(line) for line in s)\n+            return [line.center(wid) for line in s]\n         ascii_mode = not self._use_unicode\n \n         def asum(hrequired, lower, upper, use_ascii):\n"
+  },
+  {
+    "instance_id": "sympy__sympy-16792",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-16988",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-17022",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-17139",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-17630",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-17655",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/physics/mechanics/particle.py b/sympy/physics/mechanics/particle.py\nindex 2340971bc2..e2e7f7f50c 100644\n--- a/sympy/physics/mechanics/particle.py\n+++ b/sympy/physics/mechanics/particle.py\n@@ -89,6 +89,12 @@ def linear_momentum(self, frame):\n         frame : ReferenceFrame\n             The frame in which linear momentum is desired.\n \n+        Returns\n+        =======\n+        The linear momentum of the particle as a Vector.\n+        \"\"\"\n+        return self.mass * self.point.vel(frame)\n+\n         Examples\n         ========\n"
+  },
+  {
+    "instance_id": "sympy__sympy-18057",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/core/expr.py b/sympy/core/expr.py\nindex 24d89897f7..47f697d65b 100644\n--- a/sympy/core/expr.py\n+++ b/sympy/core/expr.py\n@@ -120,12 +120,9 @@ def _hashable_content(self):\n         return self._args\n \n     def __eq__(self, other):\n-        try:\n-            other = sympify(other)\n-            if not isinstance(other, Expr):\n-                return False\n-        except (SympifyError, SyntaxError):\n+        if not isinstance(other, Expr):\n             return False\n+        other = sympify(other)\n         # check for pure number expr\n         if  not (self.is_Number and other.is_Number) and (\n                 type(self) != type(other)):\n"
+  },
+  {
+    "instance_id": "sympy__sympy-18087",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-18189",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-18199",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-18532",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-18621",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-18698",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/core/exprtools.py b/sympy/core/exprtools.py\nindex 843988b6a8..149d16a189 100644\n--- a/sympy/core/exprtools.py\n+++ b/sympy/core/exprtools.py\n@@ -1176,6 +1176,9 @@ def factor_terms(expr, radical=False, clear=False, fraction=False, sign=True):\n     >>> factor_terms(x + x*(2 + 4*y)**3)\n     x*(8*(2*y + 1)**3 + 1)\n     >>> A = Symbol('A', commutative=False)\n+    >>> factor_terms(A + A*(2 + 4*y)**3)\n+    A*(8*(2*y + 1)**3 + 1)\n+*** END_REPLACE\n     >>> factor_terms(x*A + x*A + x*y*A)\n     x*(y*A + 2*A)\n"
+  },
+  {
+    "instance_id": "sympy__sympy-18835",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/utilities/iterables.py b/sympy/utilities/iterables.py\nindex d96e76263b..7d3a04573c 100644\n--- a/sympy/utilities/iterables.py\n+++ b/sympy/utilities/iterables.py\n@@ -2099,6 +2099,34 @@ def uniq(seq, result=None):\n     >>> type(uniq(dat)) in (list, tuple)\n     False\n \n+    >>> list(uniq(dat))\n+    [1, 4, 5, 2]\n+    >>> list(uniq(x for x in dat))\n+    [1, 4, 5, 2]\n+    >>> list(uniq([[1], [2, 1], [1]]))\n+    [[1], [2, 1]]\n+    \"\"\"\n+    seen = set()\n+    original_length = len(seq)\n+    for item in seq:\n+        if len(seq) != original_length:\n+            raise RuntimeError(\"The sequence was modified during iteration.\")\n+        if item not in seen:\n+            seen.add(item)\n+            yield item\n+    \"\"\"\n+    Yield unique elements from ``seq`` as an iterator. The second\n+    parameter ``result``  is used internally; it is not necessary to pass\n+    anything for this.\n+\n+    Examples\n+    ========\n+\n+    >>> from sympy.utilities.iterables import uniq\n+    >>> dat = [1, 4, 1, 5, 4, 2, 1, 2]\n+    >>> type(uniq(dat)) in (list, tuple)\n+    False\n+\n     >>> list(uniq(dat))\n     [1, 4, 5, 2]\n     >>> list(uniq(x for x in dat))\n"
+  },
+  {
+    "instance_id": "sympy__sympy-19007",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-19254",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-19487",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/functions/elementary/complexes.py b/sympy/functions/elementary/complexes.py\nindex 7fda45982b..32993e5455 100644\n--- a/sympy/functions/elementary/complexes.py\n+++ b/sympy/functions/elementary/complexes.py\n@@ -269,6 +269,12 @@ class sign(Function):\n \n     >>> sign(-1)\n     -1\n+    \"\"\"\n+\n+    def rewrite(self, *args):\n+        if args == (Abs,):\n+            return self.args[0] / Abs(self.args[0])\n+        return super().rewrite(*args)\n     >>> sign(0)\n     0\n     >>> sign(-3*I)\n"
+  },
+  {
+    "instance_id": "sympy__sympy-20049",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-20154",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-20212",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/polys/polytools.py b/sympy/polys/polytools.py\nindex 70112de3b6..2445d27b0f 100644\n--- a/sympy/polys/polytools.py\n+++ b/sympy/polys/polytools.py\n@@ -390,7 +390,10 @@ def domain(self):\n     @property\n     def zero(self):\n         \"\"\"Return zero polynomial with ``self``'s properties. \"\"\"\n-        return self.new(self.rep.zero(self.rep.lev, self.rep.dom), *self.gens)\n+        if self.rep.dom.is_ComplexField:\n+            return self.new(self.rep.zero(self.rep.lev, self.rep.dom), *self.gens)\n+        else:\n+            return self.new(self.rep.zero(self.rep.lev, self.rep.dom), *self.gens)\n \n     @property\n     def one(self):\n"
+  },
+  {
+    "instance_id": "sympy__sympy-20322",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-20442",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/physics/units/util.py b/sympy/physics/units/util.py\nindex b03ed4cd88..074a3e8a71 100644\n--- a/sympy/physics/units/util.py\n+++ b/sympy/physics/units/util.py\n@@ -45,6 +45,64 @@ def convert_to(expr, target_units, unit_system=\"SI\"):\n     Examples\n     ========\n \n+    >>> from sympy.physics.units import speed_of_light, meter, gram, second, day\n+    >>> from sympy.physics.units import mile, newton, kilogram, atomic_mass_constant\n+    >>> from sympy.physics.units import kilometer, centimeter\n+    >>> from sympy.physics.units import gravitational_constant, hbar\n+    >>> from sympy.physics.units import convert_to\n+    >>> convert_to(mile, kilometer)\n+    25146*kilometer/15625\n+    >>> convert_to(mile, kilometer).n()\n+    1.609344*kilometer\n+    >>> convert_to(speed_of_light, meter/second)\n+    299792458*meter/second\n+    >>> convert_to(day, second)\n+    86400*second\n+    >>> 3*newton\n+    3*newton\n+    \"\"\"\n+    from sympy.physics.units import UnitSystem\n+    unit_system = UnitSystem.get_unit_system(unit_system)\n+\n+    if not isinstance(target_units, (Iterable, Tuple)):\n+        target_units = [target_units]\n+\n+    if isinstance(expr, Add):\n+        return Add.fromiter(convert_to(i, target_units, unit_system) for i in expr.args)\n+\n+    expr = sympify(expr)\n+\n+    if not isinstance(expr, Quantity) and expr.has(Quantity):\n+        expr = expr.replace(lambda x: isinstance(x, Quantity), lambda x: x.convert_to(target_units, unit_system))\n+\n+    def get_total_scale_factor(expr):\n+        if isinstance(expr, Mul):\n+            return reduce(lambda x, y: x * y, [get_total_scale_factor(i) for i in expr.args])\n+        elif isinstance(expr, Pow):\n+            return get_total_scale_factor(expr.base) ** expr.exp\n+        elif isinstance(expr, Quantity):\n+            return unit_system.get_quantity_scale_factor(expr)\n+        return expr\n+\n+    depmat = _get_conversion_matrix_for_expr(expr, target_units, unit_system)\n+    if depmat is None:\n+        return expr\n+\n+    expr_scale_factor = get_total_scale_factor(expr)\n+    if expr_scale_factor == 0:\n+        return expr\n+\n+    return expr_scale_factor * Mul.fromiter((1/get_total_scale_factor(u) * u) ** p for u, p in zip(target_units, depmat))\n+    \"\"\"\n+    Convert ``expr`` to the same expression with all of its units and quantities\n+    represented as factors of ``target_units``, whenever the dimension is compatible.\n+\n+    ``target_units`` may be a single unit/quantity, or a collection of\n+    units/quantities.\n+\n+    Examples\n+    ========\n+\n     >>> from sympy.physics.units import speed_of_light, meter, gram, second, day\n     >>> from sympy.physics.units import mile, newton, kilogram, atomic_mass_constant\n     >>> from sympy.physics.units import kilometer, centimeter\n"
+  },
+  {
+    "instance_id": "sympy__sympy-20590",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/core/basic.py b/sympy/core/basic.py\nindex 9f609177dd..d47df389b3 100644\n--- a/sympy/core/basic.py\n+++ b/sympy/core/basic.py\n@@ -635,7 +635,7 @@ def is_hypergeometric(self, k):\n     @property\n     def is_comparable(self):\n         \"\"\"Return True if self can be computed to a real number\n-        (or already is a real number) with precision, else False.\n+        (or already is a real number) with precision, else False.\"\"\"\n \n         Examples\n         ========\n"
+  },
+  {
+    "instance_id": "sympy__sympy-20639",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-21055",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/matrices/expressions/trace.py b/sympy/matrices/expressions/trace.py\nindex b3a3abd346..0a5feb4361 100644\n--- a/sympy/matrices/expressions/trace.py\n+++ b/sympy/matrices/expressions/trace.py\n@@ -110,7 +110,7 @@ def doit(self, **kwargs):\n             if isinstance(self.arg, MatrixBase):\n                 return trace(self.arg)\n             else:\n-                return Trace(self.arg)\n+                return Trace(arg)\n \n     def _normalize(self):\n         # Normalization of trace of matrix products. Use transposition and\n"
+  },
+  {
+    "instance_id": "sympy__sympy-21171",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-21379",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-21612",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/printing/str.py b/sympy/printing/str.py\nindex c3fdcdd435..c992efff2c 100644\n--- a/sympy/printing/str.py\n+++ b/sympy/printing/str.py\n@@ -34,6 +34,11 @@ def parenthesize(self, item, level, strict=False):\n             return \"(%s)\" % self._print(item)\n         else:\n             return self._print(item)\n+***\n+        if (precedence(item) < level) or ((not strict) and precedence(item) <= level):\n+            return \"(%s)\" % self._print(item)\n+        else:\n+            return self._print(item)\n \n     def stringify(self, args, sep, level=0):\n         return sep.join([self.parenthesize(item, level) for item in args])\n"
+  },
+  {
+    "instance_id": "sympy__sympy-21614",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/__init__.py b/sympy/__init__.py\nindex dadf42ea96..c0c027b386 100644\n--- a/sympy/__init__.py\n+++ b/sympy/__init__.py\n@@ -60,7 +60,8 @@ def __sympy_debug():\n         expand_func, expand_trig, expand_complex, expand_multinomial, nfloat,\n         expand_power_base, expand_power_exp, arity, PrecisionExhausted, N,\n         evalf, Tuple, Dict, gcd_terms, factor_terms, factor_nc, evaluate,\n-        Catalan, EulerGamma, GoldenRatio, TribonacciConstant)\n+        Catalan, EulerGamma, GoldenRatio, TribonacciConstant,\n+        MatrixKind, UndefinedKind)\n \n from .logic import (to_cnf, to_dnf, to_nnf, And, Or, Not, Xor, Nand, Nor,\n         Implies, Equivalent, ITE, POSform, SOPform, simplify_logic, bool_map,\n"
+  },
+  {
+    "instance_id": "sympy__sympy-21627",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-21847",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-22005",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-22714",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-22840",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-23117",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-23191",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-23262",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/utilities/lambdify.py b/sympy/utilities/lambdify.py\nindex da67263b19..f91ea1b53a 100644\n--- a/sympy/utilities/lambdify.py\n+++ b/sympy/utilities/lambdify.py\n@@ -634,6 +634,7 @@ def sin_cos(x):\n     >>> import inspect\n     >>> print(inspect.getsource(f))\n     def _lambdifygenerated(x):\n+    return (1,)\n         return sin(x) + cos(x)\n \n     This shows us the source code of the function, but not the namespace it\n"
+  },
+  {
+    "instance_id": "sympy__sympy-24066",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": "diff --git a/sympy/physics/units/systems/si.py b/sympy/physics/units/systems/si.py\nindex 700495ad9d..c8b6f4c156 100644\n--- a/sympy/physics/units/systems/si.py\n+++ b/sympy/physics/units/systems/si.py\n@@ -336,7 +336,8 @@\n         # XXX: equivalent_dims is an instance method taking two arguments in\n         # addition to self so this can not work:\n         if not DimensionSystem.equivalent_dims(_dimension, Dimension(dimex)):  # type: ignore\n-            raise ValueError(\"quantity value and dimension mismatch\")\n+            if not SI.get_dimension_system().is_dimensionless(_dimension):\n+                raise ValueError(\"quantity value and dimension mismatch\")\n del _scale_factor, _dimension\n \n __all__ = [\n"
+  },
+  {
+    "instance_id": "sympy__sympy-24102",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-24152",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-24213",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  },
+  {
+    "instance_id": "sympy__sympy-24909",
+    "model_name_or_path": "lifegraph-csa-qwen2.5-coder-14b-tree",
+    "model_patch": ""
+  }
+]
