@@ -25,8 +25,8 @@ Anti-hallucination gate: invented SEARCH anchors fail closed instead of writing 
 | Layer | Status | Meaning |
 |-------|--------|---------|
 | **Architect v1** | Submitted · [PR #516](https://github.com/SWE-bench/experiments/pull/516) | Full Lite N=300 pack on the official experiments track |
-| Local Docker on official images | Cleared every instance in our simulation | We **expect ~100% Resolved** once the official harness finishes |
-| Official leaderboard % | **Pending** | Do not treat local seals as the board score |
+| Local Docker recheck (`lgn300recheck`) | **300 / 300 Resolved** | Official images · fixed pack (incl. `psf__requests-1963`) · 0 unresolved |
+| Official leaderboard % | **Pending** | Local 300/300 is not the board score — expect ~100% when their harness finishes |
 | Earlier public baseline (Tree-14B R3) | **13 / 300 = 4.33%** · [PR #500](https://github.com/SWE-bench/experiments/pull/500) | Prior sealed result on the same board |
 | Local Open Agent canaries | 13 / 13 `tree_ok` | Architecture demo reproducibility — **not** Resolved |
 
