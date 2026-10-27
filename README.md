@@ -73,3 +73,13 @@ Hackathon delta: Architect v1 packaging, full Lite N=300 submission (PR #516), Z
 ## IP hygiene
 
 Public materials describe **effects and architecture** only. No system prompts, sealed opcodes, sweep matrices, LoRA weight dumps, or API keys.
+
+## Submission package (Open Agent 2026)
+
+| Artifact | Status |
+|----------|--------|
+| GitHub + README | This repo |
+| Pitch decks (PDF) | `polystack-architect-track0{1,2,3}-pitch-deck.pdf` |
+| Demo video (1–4 min mute) | Ready locally; attach/link last on HackOS |
+| Zetaris + Meterless explanation | In README + form Sponsor technology field |
+| Cursor / NVIDIA / pre-existing | Declared above |
