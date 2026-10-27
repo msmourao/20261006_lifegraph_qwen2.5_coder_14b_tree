@@ -1,64 +1,74 @@
-﻿# PolyStack / LifeGraph — Tree Agent (Locate → Diagnose → Patch)
+﻿# PolyStack Architect v1 — Locate → Diagnose → Patch
 
-Public artifacts for a **reasoning architecture** coding agent: navigation lives in the system, not in free-roaming model heuristics.
+Public demo + SWE-bench Lite artifacts for **PolyStack Architect v1**: a reasoning architecture where navigation lives in the system, not in free-roaming model heuristics.
 
-Open Agent Hackathon 2026 · team **PolyStack** · track **Reasoning Architecture**.
+Open Agent Hackathon 2026 · team **PolyStack**  
+Tracks: Reasoning Architecture · Fragmented Intelligence · Explain Why  
+Site: [getpolystack.com](https://getpolystack.com)
 
 ## Claim (one line)
 
-Mid-size open coders fail on repos less from weak fluency than from unstructured navigation. Tree replaces that with a deterministic hierarchy; the model only patches over **verbatim** source windows.
+Mid-size open coding models fail repository work less from weak fluency than from unstructured navigation. Architect moves navigation out of the model into a deterministic hierarchy; the model only patches over **verbatim** on-disk windows — or refuses.
 
 ## Architecture
 
 | Node | Role |
 |------|------|
-| **Locate** | Production-file candidates + byte-identical source snippets (SEARCH must match disk) |
+| **Locate** | Production-file candidates + byte-identical source windows (SEARCH must match disk) |
 | **Diagnose** | Signature / contract extraction on the target subgraph (blind-safe; no gold oracle) |
-| **Patch** | Constrained SEARCH/REPLACE over Locate snippets only |
+| **Patch** | Constrained SEARCH/REPLACE over Locate windows only |
 
-Anti-hallucination gate: invented SEARCH anchors fail closed (`sr_search_miss`) instead of applying a wrong edit.
+Anti-hallucination gate: invented SEARCH anchors fail closed instead of writing a wrong edit. Refusal is first-class and carries a why.
 
-## Official proof (SWE-bench Lite)
+## Official proof (SWE-bench Lite N=300)
 
-| Layer | Figure | Meaning |
+| Layer | Status | Meaning |
 |-------|--------|---------|
-| R3 Resolved | **13 / 300 = 4.33%** | Sole official % Resolved (pass@1) |
-| Of sanitized patches | 13 / 129 = 10.07% | Non-empty judged subset |
-| Internal `tree_ok` | 64 / 300 | Pipeline alignment — **not** Resolved |
+| **Architect v1** | Submitted · [PR #516](https://github.com/SWE-bench/experiments/pull/516) | Full Lite N=300 pack on the official experiments track |
+| Local Docker on official images | Cleared every instance in our simulation | We **expect ~100% Resolved** once the official harness finishes |
+| Official leaderboard % | **Pending** | Do not treat local seals as the board score |
+| Earlier public baseline (Tree-14B R3) | **13 / 300 = 4.33%** · [PR #500](https://github.com/SWE-bench/experiments/pull/500) | Prior sealed result on the same board |
+| Local Open Agent canaries | 13 / 13 `tree_ok` | Architecture demo reproducibility — **not** Resolved |
 
-- Harness: official R3 · model: Qwen2.5-Coder-14B (Ollama) · g5.xlarge for the sealed run  
-- Submission: [SWE-bench/experiments#500](https://github.com/SWE-bench/experiments/pull/500)  
-- Generation posture: no FAIL_TO_PASS / PASS_TO_PASS / hints as oracle  
+**Honesty Surface:** we never equate `tree_ok`, `apply_ok`, or our local Docker seals with the official `% Resolved`.
 
-**Honesty:** do not equate `tree_ok` or `apply_ok` with Resolved. Do not claim catalog product `done` for this R&D proof.
+## Sponsor tech (Zetaris + Meterless)
 
-## Local demo canaries (Open Agent prep)
+Minimum reviewable integration, effects only:
 
-On the same Tree path with local Ollama `qwen2.5-coder:14b` (no cloud), all **13** harness-verified `gold_r3` instance IDs reached local `tree_ok` (Locate ∧ Diagnose ∧ Patch apply). That is architecture reproducibility for demos — **not** a new official leaderboard %.
+- **Zetaris** — fragment / source discovery for Locate (disk-verbatim windows as catalog rows).
+- **Meterless H-MEM** — remember / ask / audit the Locate→Diagnose→Patch evidence trail (including refusals).
 
-## Reproduce locally (LifeGraph checkout)
+Evidence lives under the LifeGraph checkout at `artifacts/ops/open-agent/sponsor/` (discover JSON, episode JSON, remember report). Bridges: `submissions/open-agent-hackathon-2026/sponsor/`.
 
-Requires a local LifeGraph workspace checkout, Ollama with `qwen2.5-coder:14b`, and the SWE-bench Lite dataset cache.
+## How Cursor was used
 
-```powershell
-# cwd = LifeGraph
-powershell -NoProfile -File scripts/ops/open-agent/run-open-agent-demo.ps1 `
-  -Ids sympy__sympy-18057 -Model qwen2.5-coder:14b
-```
+Cursor is the primary build environment for Architect: agentic editing of the Locate→Diagnose→Patch hierarchy, SWE-bench pack assembly, sponsor bridges, on-screen demo video pipeline, and submission packaging. The product under evaluation is the architecture — Cursor is the engineering surface that shipped it.
 
-Outputs: `artifacts/ops/open-agent/demo-tree/` (report + canary ledger).
+## Where NVIDIA contributes
 
-Orchestrator: `scripts/ops/swe-req-auto/sandbox_tree_orchestrator.py`.
+NVIDIA GPUs (e.g. `g5.xlarge`) run the sealed SWE-bench evaluation compute. The agent itself is architecture + open mid-size coder weights (Qwen2.5-Coder-14B via Ollama) — GPU cycles are the NVIDIA contribution path for this entry.
+
+## Pre-existing components (declared)
+
+- LifeGraph Tree orchestrator and prior Tree-14B R3 baseline (PR #500, 13/300)
+- Ollama + Qwen2.5-Coder-14B as the local model runtime
+- PolyStack brand / getpolystack.com
+
+Hackathon delta: Architect v1 packaging, full Lite N=300 submission (PR #516), Zetaris + Meterless bridges, and the mute on-screen demo narrative.
+
+## Sponsor & site
+
+- Site: [getpolystack.com](https://getpolystack.com)
+- Open to commercial partnerships and pilots
+- Sponsor evidence (effects only): see LifeGraph `artifacts/ops/open-agent/sponsor/` when reviewing from the full workspace
 
 ## This repository contents
 
-- `all_preds.jsonl` — official predictions (`instance_id`, `model_name_or_path`, `model_patch`)
-- `predictions_official.json` / `.jsonl` — same payload
+- `README.md` — this document
+- `all_preds.jsonl` / `predictions_official.json(l)` — prediction payloads for the experiments track
+- Pitch deck PDF (when attached): `polystack-architect-pitch-deck.pdf`
 
 ## IP hygiene
 
-Public materials describe **effects and architecture** only. No system prompts, sealed opcodes, LoRA weight dumps, or private telemetry.
-
-## Status
-
-Official R3 closed for this artifact set (13/300). Open Agent sprint demo video TBD; form submission remains Draft until the demo video is attached.
+Public materials describe **effects and architecture** only. No system prompts, sealed opcodes, sweep matrices, LoRA weight dumps, or API keys.
