@@ -67,7 +67,8 @@ Hackathon delta: Architect v1 packaging, full Lite N=300 submission (PR #516), Z
 
 - `README.md` — this document
 - `all_preds.jsonl` / `predictions_official.json(l)` — prediction payloads for the experiments track
-- Pitch deck PDF (when attached): `polystack-architect-pitch-deck.pdf`
+- `polystack-architect-pitch-deck.pdf` — shared 10-page pitch deck (onscreen beats)
+- `polystack-architect-track0{1,2,3}-pitch-deck.pdf` — per-track decks
 
 ## IP hygiene
 
